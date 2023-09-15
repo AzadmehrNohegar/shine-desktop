@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "sqlite"
+  url          = env("DATABASE_URL")
+  relationMode = "foreignKeys"
+}
+
+model Product {
+  id            Int         @id @default(autoincrement())
+  sku           String
+  name          String
+  internal_code String
+  barcode       Barcode?
+  price         Price?
+  order_item    OrderItem[]
+  is_active     Boolean     @default(true)
+}
+
+model Barcode {
+  id      Int     @id @default(autoincrement())
+  code    String
+  product Product @relation(fields: [id], references: [id])
+}
+
+model Price {
+  id            Int     @id @default(autoincrement())
+  product       Product @relation(fields: [id], references: [id])
+  inventory     Int
+  base_price    Int
+  base_discount Int
+}
+
+model Order {
+  id           Int         @id @default(autoincrement())
+  phone_number String?
+  created_date DateTime    @default(now())
+  status       String      @default("temp")
+  order_items  OrderItem[]
+}
+
+model OrderItem {
+  id             Int     @id @default(autoincrement())
+  order          Order   @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  order_id       Int
+  product        Product @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  product_id     Int
+  quantity       Int
+  label_price    Int
+  discount_price Int
+  sell_price     Int
+
+  @@unique([order_id, product_id])
+}

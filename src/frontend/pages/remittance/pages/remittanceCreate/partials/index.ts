@@ -1,0 +1,1 @@
+export { RemittanceSingle } from "./remittanceSingle";
