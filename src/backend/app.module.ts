@@ -9,6 +9,7 @@ import { PrismaModule } from "./prisma/prisma.module";
 import { OrderModule } from "./order/order.module";
 import { OrderItemModule } from "./order-item/order-item.module";
 import { ProductModule } from "./product/product.module";
+import { PrinterModule } from './printer/printer.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { ProductModule } from "./product/product.module";
     OrderModule,
     OrderItemModule,
     ProductModule,
+    PrinterModule,
   ],
   controllers: [AppController],
   providers: [AppService],

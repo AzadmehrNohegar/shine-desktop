@@ -14,7 +14,7 @@ var import_nest_electron5 = require("@doubleshot/nest-electron");
 
 // src/backend/app.module.ts
 var import_path = require("path");
-var import_common14 = require("@nestjs/common");
+var import_common16 = require("@nestjs/common");
 var import_config = require("@nestjs/config");
 var import_nest_electron4 = require("@doubleshot/nest-electron");
 var import_electron = require("electron");
@@ -795,7 +795,11 @@ ProductModule = _ts_decorate13([
   })
 ], ProductModule);
 
-// src/backend/app.module.ts
+// src/backend/printer/printer.module.ts
+var import_common15 = require("@nestjs/common");
+
+// src/backend/printer/printer.service.ts
+var import_common14 = require("@nestjs/common");
 function _ts_decorate14(decorators, target, key, desc) {
   var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
   if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
@@ -807,10 +811,173 @@ function _ts_decorate14(decorators, target, key, desc) {
   return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
 __name(_ts_decorate14, "_ts_decorate");
+var PrinterService = /* @__PURE__ */ __name(class PrinterService2 {
+  create(createPrinterDto) {
+    return "This action adds a new printer";
+  }
+  findAll() {
+    return `This action returns all printer`;
+  }
+  findOne(id) {
+    return `This action returns a #${id} printer`;
+  }
+  update(id, updatePrinterDto) {
+    return `This action updates a #${id} printer`;
+  }
+  remove(id) {
+    return `This action removes a #${id} printer`;
+  }
+}, "PrinterService");
+PrinterService = _ts_decorate14([
+  (0, import_common14.Injectable)()
+], PrinterService);
+
+// src/backend/printer/printer.gateway.ts
+var import_websockets = require("@nestjs/websockets");
+
+// src/backend/printer/dto/create-printer.dto.ts
+var CreatePrinterDto = class {
+};
+__name(CreatePrinterDto, "CreatePrinterDto");
+
+// src/backend/printer/dto/update-printer.dto.ts
+var import_mapped_types = require("@nestjs/mapped-types");
+var UpdatePrinterDto = class extends (0, import_mapped_types.PartialType)(CreatePrinterDto) {
+  constructor() {
+    super(...arguments);
+    __publicField(this, "id");
+  }
+};
+__name(UpdatePrinterDto, "UpdatePrinterDto");
+
+// src/backend/printer/printer.gateway.ts
+function _ts_decorate15(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate15, "_ts_decorate");
+function _ts_metadata9(k, v) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function")
+    return Reflect.metadata(k, v);
+}
+__name(_ts_metadata9, "_ts_metadata");
+function _ts_param4(paramIndex, decorator) {
+  return function(target, key) {
+    decorator(target, key, paramIndex);
+  };
+}
+__name(_ts_param4, "_ts_param");
+var PrinterGateway = /* @__PURE__ */ __name(class PrinterGateway2 {
+  constructor(printerService) {
+    __publicField(this, "printerService");
+    this.printerService = printerService;
+  }
+  create(createPrinterDto) {
+    return this.printerService.create(createPrinterDto);
+  }
+  findAll() {
+    return this.printerService.findAll();
+  }
+  findOne(id) {
+    return this.printerService.findOne(id);
+  }
+  update(updatePrinterDto) {
+    return this.printerService.update(updatePrinterDto.id, updatePrinterDto);
+  }
+  remove(id) {
+    return this.printerService.remove(id);
+  }
+}, "PrinterGateway");
+_ts_decorate15([
+  (0, import_websockets.SubscribeMessage)("createPrinter"),
+  _ts_param4(0, (0, import_websockets.MessageBody)()),
+  _ts_metadata9("design:type", Function),
+  _ts_metadata9("design:paramtypes", [
+    typeof CreatePrinterDto === "undefined" ? Object : CreatePrinterDto
+  ])
+], PrinterGateway.prototype, "create", null);
+_ts_decorate15([
+  (0, import_websockets.SubscribeMessage)("findAllPrinter"),
+  _ts_metadata9("design:type", Function),
+  _ts_metadata9("design:paramtypes", [])
+], PrinterGateway.prototype, "findAll", null);
+_ts_decorate15([
+  (0, import_websockets.SubscribeMessage)("findOnePrinter"),
+  _ts_param4(0, (0, import_websockets.MessageBody)()),
+  _ts_metadata9("design:type", Function),
+  _ts_metadata9("design:paramtypes", [
+    Number
+  ])
+], PrinterGateway.prototype, "findOne", null);
+_ts_decorate15([
+  (0, import_websockets.SubscribeMessage)("updatePrinter"),
+  _ts_param4(0, (0, import_websockets.MessageBody)()),
+  _ts_metadata9("design:type", Function),
+  _ts_metadata9("design:paramtypes", [
+    typeof UpdatePrinterDto === "undefined" ? Object : UpdatePrinterDto
+  ])
+], PrinterGateway.prototype, "update", null);
+_ts_decorate15([
+  (0, import_websockets.SubscribeMessage)("removePrinter"),
+  _ts_param4(0, (0, import_websockets.MessageBody)()),
+  _ts_metadata9("design:type", Function),
+  _ts_metadata9("design:paramtypes", [
+    Number
+  ])
+], PrinterGateway.prototype, "remove", null);
+PrinterGateway = _ts_decorate15([
+  (0, import_websockets.WebSocketGateway)(),
+  _ts_metadata9("design:type", Function),
+  _ts_metadata9("design:paramtypes", [
+    typeof PrinterService === "undefined" ? Object : PrinterService
+  ])
+], PrinterGateway);
+
+// src/backend/printer/printer.module.ts
+function _ts_decorate16(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate16, "_ts_decorate");
+var PrinterModule = /* @__PURE__ */ __name(class PrinterModule2 {
+}, "PrinterModule");
+PrinterModule = _ts_decorate16([
+  (0, import_common15.Module)({
+    providers: [
+      PrinterGateway,
+      PrinterService
+    ]
+  })
+], PrinterModule);
+
+// src/backend/app.module.ts
+function _ts_decorate17(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate17, "_ts_decorate");
 var AppModule = /* @__PURE__ */ __name(class AppModule2 {
 }, "AppModule");
-AppModule = _ts_decorate14([
-  (0, import_common14.Module)({
+AppModule = _ts_decorate17([
+  (0, import_common16.Module)({
     imports: [
       PrismaModule,
       import_config.ConfigModule.forRoot(),
@@ -838,7 +1005,8 @@ AppModule = _ts_decorate14([
       }),
       OrderModule,
       OrderItemModule,
-      ProductModule
+      ProductModule,
+      PrinterModule
     ],
     controllers: [
       AppController
