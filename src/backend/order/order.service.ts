@@ -1,20 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@backend/prisma/prisma.service";
 import { deepClone } from "@backend/utils/deepClone";
-import * as general from "src/types/general";
+import * as general from "@model/general";
 
 @Injectable()
 export class OrderService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create() {
-    const result = await this.prisma.order.create({
-      data: {
-        payable_price: 0,
-        total_discount: 0,
-        total_price: 0,
-      },
-    });
+    const result = await this.prisma.order.create({});
     return result;
   }
 

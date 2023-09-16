@@ -1,6 +1,6 @@
 import { PrismaService } from "@backend/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
-import * as general from "src/types/general";
+import * as general from "@model/general";
 
 @Injectable()
 export class ProductService {
@@ -15,6 +15,7 @@ export class ProductService {
     const { params } = payload;
     const { search } = params as { search: string };
     const result = await this.prisma.product.findMany({
+      take: 10,
       where: {
         name: {
           contains: search,

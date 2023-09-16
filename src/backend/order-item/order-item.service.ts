@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import * as general from "src/types/general";
+import * as general from "src/model/general";
 import { PrismaService } from "@backend/prisma/prisma.service";
 import { OrderItem } from "@prisma/client";
 
@@ -78,11 +78,6 @@ export class OrderItemService {
       select: {
         id: true,
         order_items: true,
-      },
-      data: {
-        payable_price: 0,
-        total_discount: 0,
-        total_price: 0,
       },
     });
     const result = await this.prisma.orderItem.create({

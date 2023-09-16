@@ -8,7 +8,7 @@ import { AppController } from "./app.controller";
 import { PrismaModule } from "./prisma/prisma.module";
 import { OrderModule } from "./order/order.module";
 import { OrderItemModule } from "./order-item/order-item.module";
-import { ProductModule } from './product/product.module';
+import { ProductModule } from "./product/product.module";
 
 @Module({
   imports: [
@@ -18,8 +18,8 @@ import { ProductModule } from './product/product.module';
       useFactory: async () => {
         const isDev = !app.isPackaged;
         const win = new BrowserWindow({
-          width: 1200,
-          height: 800,
+          width: 1024,
+          height: 768,
           autoHideMenuBar: true,
           webPreferences: {
             contextIsolation: true,

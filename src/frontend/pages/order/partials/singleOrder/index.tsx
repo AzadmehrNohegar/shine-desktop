@@ -2,9 +2,11 @@ import { SingleOrderRow } from "./partials";
 import { Button, Input } from "@frontend/components";
 import { useMutation, useQueryClient } from "react-query";
 import { deleteOrder } from "@frontend/api";
-import { Fragment, LegacyRef, forwardRef, useMemo, useState } from "react";
+import { Fragment, LegacyRef, forwardRef, useState } from "react";
 import { AddOrderItem, PaymentAction, ScanDetection } from "@frontend/shared";
 import { Trash } from "iconsax-react";
+import { useCompoutedOrderItem } from "@frontend/utils";
+import { OrderItem } from "@prisma/client";
 
 interface ISingleOrderProps {
   order_id: number;
@@ -16,45 +18,8 @@ const SingleOrder = forwardRef(
   (props: ISingleOrderProps, ref: LegacyRef<HTMLDivElement>) => {
     const { order_id, order_items } = props;
 
-    const total_price = useMemo(
-      () =>
-        order_items
-          .map((item) => {
-            const { label_price, quantity } = item as {
-              label_price: number;
-              quantity: number;
-            };
-            return label_price * quantity;
-          })
-          .reduce((prev: number, curr: number) => prev + curr, 0),
-      [order_items]
-    );
-
-    const total_dicsount = useMemo(
-      () =>
-        order_items
-          .map((item) => {
-            const { discount_price, quantity } = item as {
-              discount_price: number;
-              quantity: number;
-            };
-            return discount_price * quantity;
-          })
-          .reduce((prev: number, curr: number) => prev + curr, 0),
-      [order_items]
-    );
-
-    const total_count = useMemo(
-      () =>
-        order_items
-          .map((item) => {
-            const { quantity } = item as {
-              quantity: number;
-            };
-            return quantity;
-          })
-          .reduce((prev: number, curr: number) => prev + curr, 0),
-      [order_items]
+    const { total_count, total_dicsount, total_price } = useCompoutedOrderItem(
+      order_items as OrderItem[]
     );
 
     const queryClient = useQueryClient();

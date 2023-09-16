@@ -1,5 +1,5 @@
 import { AxiosCustomRequestConfig, http } from "@frontend/services";
-import { IPCRendererRequestConfig } from "src/types/general";
+import { IPCRendererRequestConfig } from "@model/general";
 
 const { onRequest } = window.electron;
 

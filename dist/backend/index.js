@@ -169,13 +169,7 @@ var OrderService = /* @__PURE__ */ __name(class OrderService2 {
     this.prisma = prisma;
   }
   async create() {
-    const result = await this.prisma.order.create({
-      data: {
-        payable_price: 0,
-        total_discount: 0,
-        total_price: 0
-      }
-    });
+    const result = await this.prisma.order.create({});
     return result;
   }
   async findAll(payload) {
@@ -255,7 +249,7 @@ var import_common6 = require("@nestjs/common");
 var import_microservices = require("@nestjs/microservices");
 var import_nest_electron = require("@doubleshot/nest-electron");
 
-// src/types/general/index.ts
+// src/model/general/index.ts
 var general_exports = {};
 
 // src/backend/order/order.controller.ts
@@ -454,11 +448,6 @@ var OrderItemService = /* @__PURE__ */ __name(class OrderItemService2 {
       select: {
         id: true,
         order_items: true
-      },
-      data: {
-        payable_price: 0,
-        total_discount: 0,
-        total_price: 0
       }
     });
     const result = await this.prisma.orderItem.create({
@@ -655,6 +644,7 @@ var ProductService = /* @__PURE__ */ __name(class ProductService2 {
     const { params } = payload;
     const { search } = params;
     const result = await this.prisma.product.findMany({
+      take: 10,
       where: {
         name: {
           contains: search
@@ -828,8 +818,8 @@ AppModule = _ts_decorate14([
         useFactory: async () => {
           const isDev = !import_electron.app.isPackaged;
           const win = new import_electron.BrowserWindow({
-            width: 1200,
-            height: 800,
+            width: 1024,
+            height: 768,
             autoHideMenuBar: true,
             webPreferences: {
               contextIsolation: true,

@@ -2,7 +2,7 @@ import { Controller } from "@nestjs/common";
 import { Payload } from "@nestjs/microservices";
 import { ProductService } from "./product.service";
 import { IpcHandle } from "@doubleshot/nest-electron";
-import * as general from "src/types/general";
+import * as general from "@model/general";
 
 @Controller()
 export class ProductController {
