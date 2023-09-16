@@ -4,6 +4,8 @@
  */
 // eslint-disable-next-line no-undef
 module.exports = {
+  productName: "نرم افزار فروشگاهی شاین",
+
   directories: {
     output: "dist/electron",
   },
