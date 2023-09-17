@@ -10,12 +10,15 @@ function CreateOrder() {
   return (
     <Fragment>
       <ScanDetection order_id={null} />
-      <div className="h-full w-full flex items-center justify-center">
+      <div className="h-full w-full flex flex-col gap-y-4 items-center justify-center">
         <img
-          src="/assets/images/create-order.png"
+          src="/assets/images/create-order.svg"
           alt="create order"
           className=""
         />
+        <span className="font-bold text-xl">
+          جهت افزودن محصول بارکد را اسکن کنید.
+        </span>
       </div>
       {isOpen && (
         <AddOrderItem

@@ -1,5 +1,12 @@
+.DS_*
+*.log
+logs
+**/*.backup.*
+**/*.back.*
+
 node_modules
+bower_components
 # Keep environment variables out of version control
 .env
 dist
-.DS_Store
+yarn-error.log
