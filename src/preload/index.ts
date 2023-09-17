@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { apiPaginationResponse } from "@model/general";
 import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("electron", {
@@ -8,7 +9,9 @@ contextBridge.exposeInMainWorld("electron", {
     params?: any,
     id?: number
   ): Promise<
-    Record<string, unknown> | Array<Record<string, number | string>>
+    | Record<string, unknown>
+    | apiPaginationResponse
+    | Array<Record<string, number | string>>
   > =>
     ipcRenderer.invoke(endpoint, {
       body,

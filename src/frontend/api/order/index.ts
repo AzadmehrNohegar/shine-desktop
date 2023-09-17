@@ -1,11 +1,22 @@
 import { AxiosCustomRequestConfig, http } from "@frontend/services";
-import { IPCRendererRequestConfig } from "@model/general";
+import {
+  IPCRendererRequestConfig,
+  apiPaginationResponse,
+} from "@model/general";
 
 const { onRequest } = window.electron;
 
 export const getOrder = async ({ params }: IPCRendererRequestConfig) => {
   const response = await onRequest("findAllOrder", null, params!);
   return response;
+};
+
+export const getOrderPagination = async ({
+  params,
+}: IPCRendererRequestConfig) => {
+  const response = await onRequest("findAllOrderPaginated", null, params!);
+  const { count, results } = response as apiPaginationResponse;
+  return { count, results };
 };
 
 export const getOrderById = async ({ id }: AxiosCustomRequestConfig) => {

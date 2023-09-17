@@ -1,11 +1,11 @@
-import { getOrder } from "@frontend/api";
-import { Button, Input } from "@frontend/components";
-import { Fragment, useDeferredValue, useState } from "react";
+import { getOrderPagination } from "@frontend/api";
+import { Input } from "@frontend/components";
+import { useDeferredValue, useState } from "react";
 import { useQuery } from "react-query";
 import { SingleHistoryRow } from "./partials";
-import { LeftChevron, RightChevron } from "@frontend/assets/svg";
 import Skeleton from "react-loading-skeleton";
 import { TablePagination } from "@frontend/shared";
+import { Order } from "@prisma/client";
 
 function HistoryList() {
   const [search, setSearch] = useState("");
@@ -16,13 +16,14 @@ function HistoryList() {
   const { data, isLoading, isError } = useQuery(
     ["orders-list", page, deferredSearch],
     () =>
-      getOrder({
+      getOrderPagination({
         params: { page, page_size: 10, id: search },
       }),
     {
       keepPreviousData: true,
     }
   );
+  console.log(data);
 
   if (isLoading || isError)
     return <Skeleton width="97vw" height="88vh" className="mr-4" />;
@@ -66,14 +67,26 @@ function HistoryList() {
             </tr>
           </thead>
           <tbody className="bg-white">
-            {data?.results.map((item: any, index: number) => (
-              <SingleHistoryRow key={item.id} {...item} />
-            ))}
+            {data?.results.map((item: unknown) => {
+              const { id, created_date, ...rest } = item as Order;
+              return (
+                <SingleHistoryRow
+                  key={id}
+                  id={id}
+                  created_date={created_date.toString()}
+                  {...rest}
+                />
+              );
+            })}
           </tbody>
         </table>
       )}
 
-      <TablePagination page={page} setPage={setPage} count={data?.count} />
+      <TablePagination
+        page={page}
+        setPage={setPage}
+        count={data?.count as number}
+      />
     </div>
   );
 }

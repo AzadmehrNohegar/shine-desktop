@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { apiPaginationResponse } from "@model/general";
+
 declare global {
   interface Window {
     electron: {
@@ -9,7 +11,9 @@ declare global {
         params?: any,
         id?: number
       ) => Promise<
-        Record<string, unknown> | Array<Record<string, number | string>>
+        | Record<string, unknown>
+        | Array<Record<string, number | string>>
+        | apiPaginationResponse
       >;
       onResponse(cb: (msg: string) => unknown): void;
     };

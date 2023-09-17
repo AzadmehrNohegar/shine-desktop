@@ -1,7 +1,7 @@
 import { OrderItem } from "@prisma/client";
 import { useMemo } from "react";
 
-export const useCompoutedOrderItem = (order_items: OrderItem[]) => {
+export const useComputedOrderItem = (order_items: OrderItem[]) => {
   const total_price = useMemo(
     () =>
       order_items

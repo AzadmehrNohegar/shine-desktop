@@ -5,7 +5,7 @@ import { deleteOrder } from "@frontend/api";
 import { Fragment, LegacyRef, forwardRef, useState } from "react";
 import { AddOrderItem, PaymentAction, ScanDetection } from "@frontend/shared";
 import { Trash } from "iconsax-react";
-import { useCompoutedOrderItem } from "@frontend/utils";
+import { useComputedOrderItem } from "@frontend/utils";
 import { OrderItem } from "@prisma/client";
 
 interface ISingleOrderProps {
@@ -18,7 +18,7 @@ const SingleOrder = forwardRef(
   (props: ISingleOrderProps, ref: LegacyRef<HTMLDivElement>) => {
     const { order_id, order_items } = props;
 
-    const { total_count, total_dicsount, total_price } = useCompoutedOrderItem(
+    const { total_count, total_dicsount, total_price } = useComputedOrderItem(
       order_items as OrderItem[]
     );
 

@@ -18,6 +18,11 @@ export class OrderController {
     return this.orderService.findAll(payload);
   }
 
+  @IpcHandle("findAllOrderPaginated")
+  findAllPaginated(@Payload() payload: general.IPCRendererRequestConfig) {
+    return this.orderService.findAllPaginated(payload);
+  }
+
   @IpcHandle("findOneOrder")
   findOne(@Payload() id: number) {
     return this.orderService.findOne(id);

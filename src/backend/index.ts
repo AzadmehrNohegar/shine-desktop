@@ -3,6 +3,7 @@ import { app } from "electron";
 import type { MicroserviceOptions } from "@nestjs/microservices";
 import { ElectronIpcTransport } from "@doubleshot/nest-electron";
 import { AppModule } from "./app.module";
+import WebSocket from "ws";
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = "true";
 
@@ -45,5 +46,22 @@ async function bootstrap() {
     app.quit();
   }
 }
+
+export const wss = new WebSocket.Server({ port: 8000 });
+
+wss.on("connection", (ws: WebSocket) => {
+  console.log("New client connected");
+  ws.on("message", (data) => {
+    console.log("data received \n " + data);
+    wss.clients.forEach(function (client) {
+      console.log("here");
+      client.send(data);
+    });
+  });
+
+  ws.on("close", () => {
+    console.log("Client disconnected");
+  });
+});
 
 bootstrap();

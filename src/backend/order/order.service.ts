@@ -42,7 +42,7 @@ export class OrderService {
       })
       .order.findMany({
         where: {
-          status: params?.status,
+          status: params?.status as string,
         },
 
         include: {
@@ -63,6 +63,48 @@ export class OrderService {
       });
 
     return deepClone(result);
+  }
+
+  async findAllPaginated(payload: general.IPCRendererRequestConfig) {
+    const { params } = payload;
+    const { page, page_size, id } = params as {
+      page: number;
+      page_size: number;
+      id: number;
+    };
+    const [count, items] = await this.prisma.$transaction([
+      this.prisma.order.count({
+        where: {
+          ...(id
+            ? {
+                id: {
+                  equals: id,
+                },
+              }
+            : {}),
+        },
+      }),
+      this.prisma.order.findMany({
+        take: page_size,
+        skip: page * page_size,
+        where: {
+          ...(id
+            ? {
+                id: {
+                  equals: id,
+                },
+              }
+            : {}),
+        },
+        include: {
+          order_items: true,
+        },
+      }),
+    ]);
+    return {
+      count,
+      results: items,
+    };
   }
 
   findOne(id: number) {

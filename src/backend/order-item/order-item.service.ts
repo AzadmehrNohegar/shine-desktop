@@ -2,12 +2,43 @@ import { Injectable } from "@nestjs/common";
 import * as general from "src/model/general";
 import { PrismaService } from "@backend/prisma/prisma.service";
 import { OrderItem } from "@prisma/client";
+import { wss } from "..";
 
 @Injectable()
 export class OrderItemService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(payload: general.IPCRendererRequestConfig) {
+    wss.clients.forEach(function each(client) {
+      const json = {
+        vendor_name: "غرفه پیروزی",
+        vendor_address: "میدان میوه و تره بار پیروزی",
+        date: "1402-05-02",
+        time: "11:1",
+        number: 453,
+        total_discount: 62000,
+        total_amount: 620000,
+        total_payable_amount: 558000,
+        order_items: [
+          {
+            name: "بدون نام",
+            quantity: 1,
+            discount: 10000,
+            total_amount: 90000,
+            unit_price: 100000,
+          },
+          {
+            name: "بدون نام",
+            quantity: 1,
+            discount: 52000,
+            total_amount: 468000,
+            unit_price: 520000,
+          },
+        ],
+      };
+      client.send(JSON.stringify(json));
+    });
+
     const { body } = payload;
     const { order_id, barcode, product_id } = body as {
       order_id: number;

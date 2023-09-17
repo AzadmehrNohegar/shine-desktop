@@ -1,20 +1,51 @@
 "use strict";
+var __create = Object.create;
 var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var __publicField = (obj, key, value) => {
   __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
 
 // src/backend/index.ts
+var backend_exports = {};
+__export(backend_exports, {
+  wss: () => wss
+});
+module.exports = __toCommonJS(backend_exports);
 var import_core = require("@nestjs/core");
 var import_electron2 = require("electron");
 var import_nest_electron5 = require("@doubleshot/nest-electron");
 
 // src/backend/app.module.ts
 var import_path = require("path");
-var import_common16 = require("@nestjs/common");
+var import_common14 = require("@nestjs/common");
 var import_config = require("@nestjs/config");
 var import_nest_electron4 = require("@doubleshot/nest-electron");
 var import_electron = require("electron");
@@ -220,6 +251,39 @@ var OrderService = /* @__PURE__ */ __name(class OrderService2 {
     });
     return deepClone(result);
   }
+  async findAllPaginated(payload) {
+    const { params } = payload;
+    const { page, page_size, id } = params;
+    const [count, items] = await this.prisma.$transaction([
+      this.prisma.order.count({
+        where: {
+          ...id ? {
+            id: {
+              equals: id
+            }
+          } : {}
+        }
+      }),
+      this.prisma.order.findMany({
+        take: page_size,
+        skip: page * page_size,
+        where: {
+          ...id ? {
+            id: {
+              equals: id
+            }
+          } : {}
+        },
+        include: {
+          order_items: true
+        }
+      })
+    ]);
+    return {
+      count,
+      results: items
+    };
+  }
   findOne(id) {
     return `This action returns a #${id} order`;
   }
@@ -286,6 +350,9 @@ var OrderController = /* @__PURE__ */ __name(class OrderController2 {
   findAll(payload) {
     return this.orderService.findAll(payload);
   }
+  findAllPaginated(payload) {
+    return this.orderService.findAllPaginated(payload);
+  }
   findOne(id) {
     return this.orderService.findOne(id);
   }
@@ -310,6 +377,14 @@ _ts_decorate6([
     typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
   ])
 ], OrderController.prototype, "findAll", null);
+_ts_decorate6([
+  (0, import_nest_electron.IpcHandle)("findAllOrderPaginated"),
+  _ts_param(0, (0, import_microservices.Payload)()),
+  _ts_metadata4("design:type", Function),
+  _ts_metadata4("design:paramtypes", [
+    typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
+  ])
+], OrderController.prototype, "findAllPaginated", null);
 _ts_decorate6([
   (0, import_nest_electron.IpcHandle)("findOneOrder"),
   _ts_param(0, (0, import_microservices.Payload)()),
@@ -386,6 +461,35 @@ var OrderItemService = /* @__PURE__ */ __name(class OrderItemService2 {
     this.prisma = prisma;
   }
   async create(payload) {
+    wss.clients.forEach(/* @__PURE__ */ __name(function each(client) {
+      const json = {
+        vendor_name: "\u063A\u0631\u0641\u0647 \u067E\u06CC\u0631\u0648\u0632\u06CC",
+        vendor_address: "\u0645\u06CC\u062F\u0627\u0646 \u0645\u06CC\u0648\u0647 \u0648 \u062A\u0631\u0647 \u0628\u0627\u0631 \u067E\u06CC\u0631\u0648\u0632\u06CC",
+        date: "1402-05-02",
+        time: "11:1",
+        number: 453,
+        total_discount: 62e3,
+        total_amount: 62e4,
+        total_payable_amount: 558e3,
+        order_items: [
+          {
+            name: "\u0628\u062F\u0648\u0646 \u0646\u0627\u0645",
+            quantity: 1,
+            discount: 1e4,
+            total_amount: 9e4,
+            unit_price: 1e5
+          },
+          {
+            name: "\u0628\u062F\u0648\u0646 \u0646\u0627\u0645",
+            quantity: 1,
+            discount: 52e3,
+            total_amount: 468e3,
+            unit_price: 52e4
+          }
+        ]
+      };
+      client.send(JSON.stringify(json));
+    }, "each"));
     const { body } = payload;
     const { order_id, barcode, product_id } = body;
     const product = await this.prisma.product.findFirst({
@@ -795,11 +899,7 @@ ProductModule = _ts_decorate13([
   })
 ], ProductModule);
 
-// src/backend/printer/printer.module.ts
-var import_common15 = require("@nestjs/common");
-
-// src/backend/printer/printer.service.ts
-var import_common14 = require("@nestjs/common");
+// src/backend/app.module.ts
 function _ts_decorate14(decorators, target, key, desc) {
   var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
   if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
@@ -811,173 +911,10 @@ function _ts_decorate14(decorators, target, key, desc) {
   return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
 __name(_ts_decorate14, "_ts_decorate");
-var PrinterService = /* @__PURE__ */ __name(class PrinterService2 {
-  create(createPrinterDto) {
-    return "This action adds a new printer";
-  }
-  findAll() {
-    return `This action returns all printer`;
-  }
-  findOne(id) {
-    return `This action returns a #${id} printer`;
-  }
-  update(id, updatePrinterDto) {
-    return `This action updates a #${id} printer`;
-  }
-  remove(id) {
-    return `This action removes a #${id} printer`;
-  }
-}, "PrinterService");
-PrinterService = _ts_decorate14([
-  (0, import_common14.Injectable)()
-], PrinterService);
-
-// src/backend/printer/printer.gateway.ts
-var import_websockets = require("@nestjs/websockets");
-
-// src/backend/printer/dto/create-printer.dto.ts
-var CreatePrinterDto = class {
-};
-__name(CreatePrinterDto, "CreatePrinterDto");
-
-// src/backend/printer/dto/update-printer.dto.ts
-var import_mapped_types = require("@nestjs/mapped-types");
-var UpdatePrinterDto = class extends (0, import_mapped_types.PartialType)(CreatePrinterDto) {
-  constructor() {
-    super(...arguments);
-    __publicField(this, "id");
-  }
-};
-__name(UpdatePrinterDto, "UpdatePrinterDto");
-
-// src/backend/printer/printer.gateway.ts
-function _ts_decorate15(decorators, target, key, desc) {
-  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
-    r = Reflect.decorate(decorators, target, key, desc);
-  else
-    for (var i = decorators.length - 1; i >= 0; i--)
-      if (d = decorators[i])
-        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-  return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
-__name(_ts_decorate15, "_ts_decorate");
-function _ts_metadata9(k, v) {
-  if (typeof Reflect === "object" && typeof Reflect.metadata === "function")
-    return Reflect.metadata(k, v);
-}
-__name(_ts_metadata9, "_ts_metadata");
-function _ts_param4(paramIndex, decorator) {
-  return function(target, key) {
-    decorator(target, key, paramIndex);
-  };
-}
-__name(_ts_param4, "_ts_param");
-var PrinterGateway = /* @__PURE__ */ __name(class PrinterGateway2 {
-  constructor(printerService) {
-    __publicField(this, "printerService");
-    this.printerService = printerService;
-  }
-  create(createPrinterDto) {
-    return this.printerService.create(createPrinterDto);
-  }
-  findAll() {
-    return this.printerService.findAll();
-  }
-  findOne(id) {
-    return this.printerService.findOne(id);
-  }
-  update(updatePrinterDto) {
-    return this.printerService.update(updatePrinterDto.id, updatePrinterDto);
-  }
-  remove(id) {
-    return this.printerService.remove(id);
-  }
-}, "PrinterGateway");
-_ts_decorate15([
-  (0, import_websockets.SubscribeMessage)("createPrinter"),
-  _ts_param4(0, (0, import_websockets.MessageBody)()),
-  _ts_metadata9("design:type", Function),
-  _ts_metadata9("design:paramtypes", [
-    typeof CreatePrinterDto === "undefined" ? Object : CreatePrinterDto
-  ])
-], PrinterGateway.prototype, "create", null);
-_ts_decorate15([
-  (0, import_websockets.SubscribeMessage)("findAllPrinter"),
-  _ts_metadata9("design:type", Function),
-  _ts_metadata9("design:paramtypes", [])
-], PrinterGateway.prototype, "findAll", null);
-_ts_decorate15([
-  (0, import_websockets.SubscribeMessage)("findOnePrinter"),
-  _ts_param4(0, (0, import_websockets.MessageBody)()),
-  _ts_metadata9("design:type", Function),
-  _ts_metadata9("design:paramtypes", [
-    Number
-  ])
-], PrinterGateway.prototype, "findOne", null);
-_ts_decorate15([
-  (0, import_websockets.SubscribeMessage)("updatePrinter"),
-  _ts_param4(0, (0, import_websockets.MessageBody)()),
-  _ts_metadata9("design:type", Function),
-  _ts_metadata9("design:paramtypes", [
-    typeof UpdatePrinterDto === "undefined" ? Object : UpdatePrinterDto
-  ])
-], PrinterGateway.prototype, "update", null);
-_ts_decorate15([
-  (0, import_websockets.SubscribeMessage)("removePrinter"),
-  _ts_param4(0, (0, import_websockets.MessageBody)()),
-  _ts_metadata9("design:type", Function),
-  _ts_metadata9("design:paramtypes", [
-    Number
-  ])
-], PrinterGateway.prototype, "remove", null);
-PrinterGateway = _ts_decorate15([
-  (0, import_websockets.WebSocketGateway)(),
-  _ts_metadata9("design:type", Function),
-  _ts_metadata9("design:paramtypes", [
-    typeof PrinterService === "undefined" ? Object : PrinterService
-  ])
-], PrinterGateway);
-
-// src/backend/printer/printer.module.ts
-function _ts_decorate16(decorators, target, key, desc) {
-  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
-    r = Reflect.decorate(decorators, target, key, desc);
-  else
-    for (var i = decorators.length - 1; i >= 0; i--)
-      if (d = decorators[i])
-        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-  return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
-__name(_ts_decorate16, "_ts_decorate");
-var PrinterModule = /* @__PURE__ */ __name(class PrinterModule2 {
-}, "PrinterModule");
-PrinterModule = _ts_decorate16([
-  (0, import_common15.Module)({
-    providers: [
-      PrinterGateway,
-      PrinterService
-    ]
-  })
-], PrinterModule);
-
-// src/backend/app.module.ts
-function _ts_decorate17(decorators, target, key, desc) {
-  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
-    r = Reflect.decorate(decorators, target, key, desc);
-  else
-    for (var i = decorators.length - 1; i >= 0; i--)
-      if (d = decorators[i])
-        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-  return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
-__name(_ts_decorate17, "_ts_decorate");
 var AppModule = /* @__PURE__ */ __name(class AppModule2 {
 }, "AppModule");
-AppModule = _ts_decorate17([
-  (0, import_common16.Module)({
+AppModule = _ts_decorate14([
+  (0, import_common14.Module)({
     imports: [
       PrismaModule,
       import_config.ConfigModule.forRoot(),
@@ -1005,8 +942,7 @@ AppModule = _ts_decorate17([
       }),
       OrderModule,
       OrderItemModule,
-      ProductModule,
-      PrinterModule
+      ProductModule
     ],
     controllers: [
       AppController
@@ -1018,6 +954,7 @@ AppModule = _ts_decorate17([
 ], AppModule);
 
 // src/backend/index.ts
+var import_ws = __toESM(require("ws"));
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = "true";
 async function electronAppInit() {
   const isDev = !import_electron2.app.isPackaged;
@@ -1053,4 +990,24 @@ async function bootstrap() {
   }
 }
 __name(bootstrap, "bootstrap");
+var wss = new import_ws.default.Server({
+  port: 8e3
+});
+wss.on("connection", (ws) => {
+  console.log("New client connected");
+  ws.on("message", (data) => {
+    console.log("data received \n " + data);
+    wss.clients.forEach(function(client) {
+      console.log("here");
+      client.send(data);
+    });
+  });
+  ws.on("close", () => {
+    console.log("Client disconnected");
+  });
+});
 bootstrap();
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  wss
+});

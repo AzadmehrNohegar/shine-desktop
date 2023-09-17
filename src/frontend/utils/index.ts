@@ -4,4 +4,4 @@ export { useDateControls } from "./useDateControls";
 export { usePersianConvert } from "./usePersianConvert";
 export { usePrevious } from "./usePrevious";
 export { useDebouncedValue } from "./useDeboucedValue";
-export { useCompoutedOrderItem } from "./useComputedOrderItem";
+export { useComputedOrderItem } from "./useComputedOrderItem";
