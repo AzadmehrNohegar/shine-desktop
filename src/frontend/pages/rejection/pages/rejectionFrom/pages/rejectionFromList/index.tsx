@@ -1,10 +1,11 @@
-import { getOrder } from "@frontend/api";
+import { getOrderPagination } from "@frontend/api";
 import { Input } from "@frontend/components";
 import { Fragment, useDeferredValue, useState } from "react";
 import { useQuery } from "react-query";
 import { SingleRejectionRow } from "./partials";
 import Skeleton from "react-loading-skeleton";
 import { TablePagination } from "@frontend/shared";
+import { ORDER_TYPES } from "@model/general";
 
 function RejectionFromListPage() {
   const [search, setSearch] = useState("");
@@ -15,8 +16,13 @@ function RejectionFromListPage() {
   const { data, isLoading, isError } = useQuery(
     ["completed-orders", page, deferredSearch],
     () =>
-      getOrder({
-        params: { page, page_size: 10, id: search },
+      getOrderPagination({
+        params: {
+          page,
+          page_size: 10,
+          id: search,
+          status: ORDER_TYPES["completed"],
+        },
       }),
     {
       keepPreviousData: true,
@@ -66,9 +72,11 @@ function RejectionFromListPage() {
               </tr>
             </thead>
             <tbody className="bg-white">
-              {data?.results.map((item: any) => (
-                <SingleRejectionRow key={item.id} {...item} />
-              ))}
+              {data?.results.map((item: unknown) => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const { id, ...rest } = item as any;
+                return <SingleRejectionRow key={id} id={id} {...rest} />;
+              })}
             </tbody>
           </table>
 

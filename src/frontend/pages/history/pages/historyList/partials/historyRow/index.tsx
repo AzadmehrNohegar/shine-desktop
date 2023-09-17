@@ -46,7 +46,7 @@ function SingleHistoryRow({
           }).format(new Date(created_date))}
         </td>
         <td className="px-2 py-3 truncate border-l border-l-G10 text-right">
-          <strong>{total_price.toLocaleString()}</strong>{" "}
+          <strong>{total_price?.toLocaleString()}</strong>{" "}
           <span className="text-sm font-light">ریال</span>
         </td>
         <td className="px-2 py-3 truncate border-l border-l-G10 text-right">

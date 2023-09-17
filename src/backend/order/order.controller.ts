@@ -24,8 +24,8 @@ export class OrderController {
   }
 
   @IpcHandle("findOneOrder")
-  findOne(@Payload() id: number) {
-    return this.orderService.findOne(id);
+  findOne(@Payload() payload: general.IPCRendererRequestConfig) {
+    return this.orderService.findOne(payload);
   }
 
   // @IpcHandle("updateOrder")

@@ -80,7 +80,7 @@ function SingleOrderRow({
   }, [quantity]);
 
   return (
-    <tr>
+    <tr className="border-b border-b-G10">
       <td className="border-l border-l-G10 text-right">
         <Button
           color="danger"

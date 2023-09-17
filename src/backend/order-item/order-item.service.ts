@@ -2,75 +2,39 @@ import { Injectable } from "@nestjs/common";
 import * as general from "src/model/general";
 import { PrismaService } from "@backend/prisma/prisma.service";
 import { OrderItem } from "@prisma/client";
-import { wss } from "..";
+// import { wss } from "..";
 
 @Injectable()
 export class OrderItemService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(payload: general.IPCRendererRequestConfig) {
-    wss.clients.forEach(function each(client) {
-      const json = {
-        vendor_name: "غرفه پیروزی",
-        vendor_address: "میدان میوه و تره بار پیروزی",
-        date: "1402-05-02",
-        time: "11:1",
-        number: 453,
-        total_discount: 62000,
-        total_amount: 620000,
-        total_payable_amount: 558000,
-        order_items: [
-          {
-            name: "بدون نام",
-            quantity: 1,
-            discount: 10000,
-            total_amount: 90000,
-            unit_price: 100000,
-          },
-          {
-            name: "بدون نام",
-            quantity: 1,
-            discount: 52000,
-            total_amount: 468000,
-            unit_price: 520000,
-          },
-        ],
-      };
-      client.send(JSON.stringify(json));
-    });
-
     const { body } = payload;
-    const { order_id, barcode, product_id } = body as {
-      order_id: number;
-      barcode?: string;
-      product_id?: number;
+    const { price_id, order_id } = body as {
+      order_id: number | null;
+      price_id: number;
     };
-    const product = await this.prisma.product.findFirst({
+
+    const price = await this.prisma.price.findUnique({
       where: {
-        ...(barcode
-          ? {
-              barcode: {
-                code: barcode,
-              },
-            }
-          : {}),
-        ...(product_id ? { id: product_id } : {}),
+        id: price_id,
       },
       include: {
-        price: true,
+        product: true,
       },
     });
-    if (!product) return null;
+
+    if (!price) return null;
 
     if (order_id) {
       const order_item = await this.prisma.orderItem.findFirst({
         where: {
           order_id,
-          product_id: product.id,
+          product_id: price.product_id,
+          label_price: price.base_price,
         },
       });
-
-      if (!order_item) {
+      if (!order_item)
         return await this.prisma.orderItem.create({
           include: {
             order: true,
@@ -83,17 +47,13 @@ export class OrderItemService {
           },
           data: {
             order_id,
-            product_id: product.id,
-            discount_price: 1000,
-            label_price: product.price?.base_price || 0,
-            sell_price:
-              (product.price?.base_price || 0) -
-              (product.price?.base_discount || 0),
+            product_id: price.product_id,
+            discount_price: price.base_discount,
+            label_price: price.base_price,
+            sell_price: price.base_price - price.base_discount,
             quantity: 1,
           },
         });
-      }
-
       return await this.prisma.orderItem.update({
         where: {
           id: order_item.id,
@@ -105,12 +65,14 @@ export class OrderItemService {
         },
       });
     }
+
     const order = await this.prisma.order.create({
       select: {
         id: true,
         order_items: true,
       },
     });
+
     const result = await this.prisma.orderItem.create({
       include: {
         order: true,
@@ -123,12 +85,10 @@ export class OrderItemService {
       },
       data: {
         order_id: order.id,
-        product_id: product.id,
-        discount_price: 1000,
-        label_price: product.price?.base_price || 0,
-        sell_price:
-          (product.price?.base_price || 0) -
-          (product.price?.base_discount || 0),
+        product_id: price.product_id,
+        discount_price: price.base_discount,
+        label_price: price.base_price,
+        sell_price: price.base_price - price.base_discount,
         quantity: 1,
       },
     });

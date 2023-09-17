@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import { deleteOrder, getOrder } from "@frontend/api";
 import Skeleton from "react-loading-skeleton";
 import clsx from "clsx";
+import { ORDER_TYPES } from "@model/general";
 
 function OrderPage() {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -22,7 +23,7 @@ function OrderPage() {
     queryFn: () =>
       getOrder({
         params: {
-          status: "temp",
+          status: ORDER_TYPES["temp"],
         },
       }),
     onSuccess: (res: Array<Record<string, number | string>>) => {

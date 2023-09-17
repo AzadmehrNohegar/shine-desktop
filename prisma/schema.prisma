@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider     = "sqlite"
-  url          = "file:\\db\\shine-desktop.db"
+  url          = "file:/Users/Shared/db/shine-desktop.db"
   relationMode = "foreignKeys"
 }
 
@@ -16,24 +16,30 @@ model Product {
   sku           String
   name          String
   internal_code String
-  barcode       Barcode?
-  price         Price?
+  barcode       Barcode[]
+  price         Price[]
   order_item    OrderItem[]
   is_active     Boolean     @default(true)
 }
 
 model Barcode {
-  id      Int     @id @default(autoincrement())
-  code    String
-  product Product @relation(fields: [id], references: [id])
+  id         Int     @id @default(autoincrement())
+  code       String
+  product    Product @relation(fields: [product_id], references: [id])
+  product_id Int
+
+  @@unique([product_id, id])
 }
 
 model Price {
   id            Int     @id @default(autoincrement())
-  product       Product @relation(fields: [id], references: [id])
+  product       Product @relation(fields: [product_id], references: [id])
+  product_id    Int
   inventory     Int
   base_price    Int
   base_discount Int
+
+  @@unique([product_id, id])
 }
 
 model Order {
@@ -42,18 +48,41 @@ model Order {
   created_date DateTime    @default(now())
   status       String      @default("temp")
   order_items  OrderItem[]
+  Refund       Refund?
+  is_refunded  Boolean     @default(false)
 }
 
 model OrderItem {
-  id             Int     @id @default(autoincrement())
-  order          Order   @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  id             Int         @id @default(autoincrement())
+  order          Order       @relation(fields: [order_id], references: [id], onDelete: Cascade)
   order_id       Int
-  product        Product @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  product        Product     @relation(fields: [product_id], references: [id], onDelete: Restrict)
   product_id     Int
   quantity       Int
   label_price    Int
   discount_price Int
   sell_price     Int
+  RefundItem     RefundItem?
 
-  @@unique([order_id, product_id])
+  @@unique([id, order_id])
+}
+
+model Refund {
+  id            Int          @id @default(autoincrement())
+  order         Order        @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  order_id      Int          @unique
+  created_date  DateTime     @default(now())
+  modified_date DateTime     @updatedAt
+  description   String       @default("")
+  status        String       @default("from")
+  RefundItem    RefundItem[]
+}
+
+model RefundItem {
+  id                  Int       @id @default(autoincrement())
+  refund              Refund    @relation(fields: [refund_id], references: [id], onDelete: Cascade)
+  refund_id           Int
+  order_item          OrderItem @relation(fields: [order_item_id], references: [id], onDelete: Cascade)
+  order_item_id       Int       @unique
+  order_item_quantity Int
 }

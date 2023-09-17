@@ -4,9 +4,16 @@ import Skeleton from "react-loading-skeleton";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { SingleRejectionFromRow } from "./partials";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { toast } from "react-toastify";
 import { Button, Input } from "@frontend/components";
+import { OrderItem, Product } from "@prisma/client";
+import { useComputedOrderItem } from "@frontend/utils";
+import { rejectionOrderItem } from "@model/general";
+
+type compositeOrderItem = OrderItem & {
+  product: Product;
+};
 
 function RejectionFromSinglePage() {
   const { id } = useParams();
@@ -14,16 +21,18 @@ function RejectionFromSinglePage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const [orderItems, setOrderItems] = useState<any>(null);
+  const [orderItems, setOrderItems] = useState<rejectionOrderItem[] | null>(
+    null
+  );
   const [description, setDescription] = useState("");
 
   const { data, isLoading, isError } = useQuery(
     `order-single-${id}`,
-    () => getOrderById({ id }),
+    () => getOrderById({ id: Number(id) }),
     {
-      onSuccess: (res) =>
+      onSuccess: (res: Record<string, unknown>) =>
         setOrderItems(
-          res.order_items.map((item: any) => ({
+          (res.order_items as compositeOrderItem[]).map((item) => ({
             order_item: item.id,
             quantity: 0,
             max_quantity: item.quantity,
@@ -33,9 +42,13 @@ function RejectionFromSinglePage() {
     }
   );
 
+  const { total_count } = useComputedOrderItem(
+    data?.order_items as OrderItem[]
+  );
+
   const handleIncrementOrderItemQuantity = (id: number) =>
-    setOrderItems((prevState: any) =>
-      prevState.map((item: any) => {
+    setOrderItems((prevState) =>
+      prevState!.map((item) => {
         if (item.order_item === id)
           return {
             ...item,
@@ -47,8 +60,8 @@ function RejectionFromSinglePage() {
     );
 
   const handleDecrementOrderItemQuantity = (id: number) =>
-    setOrderItems((prevState: any) =>
-      prevState.map((item: any) => {
+    setOrderItems((prevState) =>
+      prevState!.map((item) => {
         if (item.order_item === id)
           return {
             ...item,
@@ -69,19 +82,20 @@ function RejectionFromSinglePage() {
     },
   });
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const parsedOrderItems = orderItems
-      .filter((item: any) => item.quantity > 0)
-      .map(({ order_item, quantity }: any) => ({
+    const parsedOrderItems = orderItems!
+      .filter((item) => item.quantity > 0)
+      .map(({ order_item, quantity }) => ({
         order_item,
         quantity,
       }));
     if (parsedOrderItems.length > 0)
       createRefund.mutate({
         body: {
+          order_id: Number(id),
           description,
-          items: orderItems,
+          items: parsedOrderItems,
         },
       });
   };
@@ -101,12 +115,12 @@ function RejectionFromSinglePage() {
         <span className="inline-block p-4">
           {new Intl.DateTimeFormat("fa-IR", {
             weekday: "long",
-          }).format(new Date(data?.created_date))}{" "}
+          }).format(new Date(data?.created_date as string))}{" "}
           -{" "}
           {new Intl.DateTimeFormat("fa-IR", {
             dateStyle: "short",
             timeStyle: "short",
-          }).format(new Date(data?.created_date))}
+          }).format(new Date(data?.created_date as string))}
         </span>
       </div>
       <div className="w-full px-4 flex gap-x-4 justify-between">
@@ -130,20 +144,27 @@ function RejectionFromSinglePage() {
             </thead>
             <tbody className="bg-white">
               {orderItems &&
-                data?.order_items.map((item: any, index: any) => (
-                  <SingleRejectionFromRow
-                    orderItemData={orderItems[index]}
-                    key={item.id}
-                    handleDecrementOrderItemQuantity={
-                      handleDecrementOrderItemQuantity
-                    }
-                    handleIncrementOrderItemQuantity={
-                      handleIncrementOrderItemQuantity
-                    }
-                    {...item}
-                    index={index}
-                  />
-                ))}
+                (data?.order_items as compositeOrderItem[]).map(
+                  (item, index: number) => {
+                    const { id, product, ...rest } = item;
+                    return (
+                      <SingleRejectionFromRow
+                        id={id}
+                        product={product}
+                        orderItemData={orderItems[index]}
+                        index={index}
+                        key={item.id}
+                        handleDecrementOrderItemQuantity={
+                          handleDecrementOrderItemQuantity
+                        }
+                        handleIncrementOrderItemQuantity={
+                          handleIncrementOrderItemQuantity
+                        }
+                        {...rest}
+                      />
+                    );
+                  }
+                )}
             </tbody>
           </table>
         </div>
@@ -152,11 +173,11 @@ function RejectionFromSinglePage() {
           className="w-1/3 self-start min-h-[80vh] shadow-sm p-4 flex flex-col"
         >
           <h2 className="mb-4 font-semibold text-lg">اقلام مرجوعی</h2>
-          {orderItems.filter((item: any) => item.quantity > 0).length > 0 && (
+          {orderItems!.filter((item) => item.quantity > 0).length > 0 && (
             <ul className="border border-G10 p-2 min-h-[310px] max-h-[310px] overflow-y-auto">
-              {orderItems
-                .filter((item: any) => item.quantity > 0)
-                .map((item: any) => (
+              {orderItems!
+                .filter((item) => item.quantity > 0)
+                .map((item) => (
                   <li
                     key={item.order_item}
                     className="flex items-center justify-between border-b border-b-G10 last-of-type:border-b-transparent py-2 text-light"
@@ -171,7 +192,7 @@ function RejectionFromSinglePage() {
           <ul className="flex flex-col gap-y-4 mt-auto px-1">
             <li className="flex items-center justify-between">
               <span className="text-G3">تعداد اقلام</span>
-              <span className="text-G3">{data?.order_items_count} عدد</span>
+              <span className="text-G3">{total_count} عدد</span>
             </li>
             <li className="flex items-center justify-between">
               <span className="text-primary font-semibold text-lg">
@@ -195,7 +216,7 @@ function RejectionFromSinglePage() {
             size="unspecified"
             className="w-full py-4 mt-4"
             disabled={
-              orderItems.filter((item: any) => item.quantity > 0).length === 0
+              orderItems!.filter((item) => item.quantity > 0).length === 0
             }
           >
             مرجوع کردن سفارش

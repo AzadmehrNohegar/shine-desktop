@@ -1,7 +1,8 @@
-import { AxiosCustomRequestConfig, http } from "@frontend/services";
+import { IPCRendererRequestConfig } from "@model/general";
 
-export const postRefund = async ({ body }: AxiosCustomRequestConfig) => {
-  const response = await http.post("/refund/refund/bulk_add/", body);
-  const data = await response.data;
-  return data;
+const { onRequest } = window.electron;
+
+export const postRefund = async ({ body }: IPCRendererRequestConfig) => {
+  const response = await onRequest("createRefund", body!);
+  return response;
 };

@@ -19,8 +19,13 @@ export class ProductController {
   }
 
   @IpcHandle("findOneProduct")
-  findOne(@Payload() id: number) {
-    return this.productService.findOne(id);
+  findOne(@Payload() payload: general.IPCRendererRequestConfig) {
+    return this.productService.findOne(payload);
+  }
+
+  @IpcHandle("findOneProductByBarcode")
+  findOneByBarcode(@Payload() payload: general.IPCRendererRequestConfig) {
+    return this.productService.findOneByBarcode(payload);
   }
 
   @IpcHandle("updateProduct")

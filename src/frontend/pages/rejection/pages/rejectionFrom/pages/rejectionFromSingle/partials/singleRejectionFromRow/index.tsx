@@ -1,5 +1,6 @@
 import { Minus, Plus } from "@frontend/assets/svg";
 import { Button } from "@frontend/components";
+import { rejectionOrderItem } from "@model/general";
 
 type product = {
   id: number;
@@ -9,16 +10,13 @@ type product = {
 
 interface ISingleRejectionFromRow {
   label_price: number;
-  discount_amount: number;
   quantity: number;
   product: product;
   index: number;
-  total_discount_amount: number;
-  sub_total_amount: number;
   id: number;
-  orderItemData: any;
+  orderItemData: rejectionOrderItem;
   handleDecrementOrderItemQuantity: (id: number) => void;
-  handleIncrementOrderItemQuantity: (id: any) => void;
+  handleIncrementOrderItemQuantity: (id: number) => void;
 }
 
 function SingleRejectionFromRow({
@@ -27,9 +25,10 @@ function SingleRejectionFromRow({
   orderItemData,
   handleDecrementOrderItemQuantity,
   handleIncrementOrderItemQuantity,
-  id,
+  ...rest
 }: ISingleRejectionFromRow) {
   const { sku, name } = product;
+  console.log(rest, "rest");
 
   return (
     <tr>

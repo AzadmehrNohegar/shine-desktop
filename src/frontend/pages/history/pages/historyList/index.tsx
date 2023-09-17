@@ -8,7 +8,7 @@ import { TablePagination } from "@frontend/shared";
 import { Order } from "@prisma/client";
 
 function HistoryList() {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState<string | number>("");
   const deferredSearch = useDeferredValue(search);
 
   const [page, setPage] = useState(1);
@@ -17,13 +17,13 @@ function HistoryList() {
     ["orders-list", page, deferredSearch],
     () =>
       getOrderPagination({
-        params: { page, page_size: 10, id: search },
+        params: { page, page_size: 10, id: Number(search) },
       }),
     {
+      initialData: { count: 0, results: [] },
       keepPreviousData: true,
     }
   );
-  console.log(data);
 
   if (isLoading || isError)
     return <Skeleton width="97vw" height="88vh" className="mr-4" />;
@@ -37,10 +37,11 @@ function HistoryList() {
         <Input
           id="phone"
           placeholder="شماره سفارش..."
+          type="number"
           value={search}
           onChange={(e) => {
             if (page > 1) setPage(1);
-            setSearch(e.target.value);
+            setSearch(e.target.valueAsNumber);
           }}
         />
       </div>

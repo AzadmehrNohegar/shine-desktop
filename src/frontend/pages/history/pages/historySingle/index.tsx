@@ -7,13 +7,15 @@ import { Fragment } from "react";
 import { Button } from "@frontend/components";
 import { SingleHistoryRow } from "./partials";
 import { toast } from "react-toastify";
+import { useComputedOrderItem } from "@frontend/utils";
+import { OrderItem } from "@prisma/client";
 
 function HistorySingle() {
   const { order_id } = useParams();
 
   const { data, isLoading, isError } = useQuery(
     `order-single-${order_id}`,
-    () => getOrderById({ id: order_id })
+    () => getOrderById({ id: Number(order_id) })
   );
 
   const postReceipt = useMutation(postOrderByIdInvoice, {
@@ -23,6 +25,10 @@ function HistorySingle() {
       });
     },
   });
+
+  const { total_count, total_dicsount, total_price } = useComputedOrderItem(
+    data?.order_items as OrderItem[]
+  );
 
   const handlePrint = () =>
     postReceipt.mutate({
@@ -43,14 +49,14 @@ function HistorySingle() {
             <span>سفارش شماره {order_id}</span>
           </h1>
           <span className="inline-block p-4">
-            {new Intl.DateTimeFormat("fa-IR", {
+            {/* {new Intl.DateTimeFormat("fa-IR", {
               weekday: "long",
-            }).format(new Date(data?.created_date))}{" "}
+            }).format(new Date(data?.created_date as string))}{" "}
             -{" "}
             {new Intl.DateTimeFormat("fa-IR", {
               dateStyle: "short",
               timeStyle: "short",
-            }).format(new Date(data?.created_date))}
+            }).format(new Date(data?.created_date as string))} */}
           </span>
         </div>
 
@@ -61,18 +67,18 @@ function HistorySingle() {
               <ul className="flex flex-col gap-y-4">
                 <li className="flex items-center justify-between">
                   <span className="text-G3">تعداد اقلام</span>
-                  <span className="text-G3">{data?.order_items_count} عدد</span>
+                  <span className="text-G3">{total_count} عدد</span>
                 </li>
                 <li className="flex items-center justify-between">
                   <span className="text-G3">مبلغ کل</span>
                   <span className="text-G3">
-                    {Number(data?.total_amount).toLocaleString()} ریال
+                    {total_price?.toLocaleString()} ریال
                   </span>
                 </li>
                 <li className="flex items-center justify-between">
                   <span className="text-G3">جمع تخفیف</span>
                   <span className="text-G3">
-                    {Number(data?.total_discount_amount).toLocaleString()} ریال
+                    {total_dicsount?.toLocaleString()} ریال
                   </span>
                 </li>
                 <li className="flex items-center justify-between">
@@ -80,7 +86,7 @@ function HistorySingle() {
                     پرداخت شده
                   </span>
                   <span className="text-G3 font-semibold text-lg">
-                    {Number(data?.total_paid_amount || 0).toLocaleString()} ریال
+                    {(total_price! - total_dicsount!).toLocaleString()} ریال
                   </span>
                 </li>
               </ul>
@@ -135,9 +141,15 @@ function HistorySingle() {
                 </tr>
               </thead>
               <tbody className="bg-white">
-                {data?.order_items.map((item: any, index: any) => (
-                  <SingleHistoryRow key={item.id} {...item} index={index} />
-                ))}
+                {(data?.order_items as OrderItem[]).map(
+                  (item: unknown, index: number) => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const { id, ...rest } = item as any;
+                    return (
+                      <SingleHistoryRow key={id} {...rest} index={index} />
+                    );
+                  }
+                )}
               </tbody>
             </table>
           </div>

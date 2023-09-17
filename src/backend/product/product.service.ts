@@ -23,13 +23,41 @@ export class ProductService {
       },
       include: {
         barcode: true,
+        price: true,
       },
     });
     return result;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(payload: general.IPCRendererRequestConfig) {
+    const { id } = payload;
+    const result = await this.prisma.product.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        price: true,
+      },
+    });
+    return result;
+  }
+
+  async findOneByBarcode(payload: general.IPCRendererRequestConfig) {
+    const { body } = payload;
+    const { barcode } = body as { barcode: string };
+    const result = await this.prisma.product.findFirst({
+      where: {
+        barcode: {
+          some: {
+            code: barcode,
+          },
+        },
+      },
+      include: {
+        price: true,
+      },
+    });
+    return result;
   }
 
   update(id: number, updateProductDto: unknown) {

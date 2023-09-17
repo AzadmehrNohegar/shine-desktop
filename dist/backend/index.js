@@ -41,13 +41,13 @@ __export(backend_exports, {
 module.exports = __toCommonJS(backend_exports);
 var import_core = require("@nestjs/core");
 var import_electron2 = require("electron");
-var import_nest_electron5 = require("@doubleshot/nest-electron");
+var import_nest_electron6 = require("@doubleshot/nest-electron");
 
 // src/backend/app.module.ts
 var import_path = require("path");
-var import_common14 = require("@nestjs/common");
+var import_common17 = require("@nestjs/common");
 var import_config = require("@nestjs/config");
-var import_nest_electron4 = require("@doubleshot/nest-electron");
+var import_nest_electron5 = require("@doubleshot/nest-electron");
 var import_electron = require("electron");
 
 // src/backend/app.service.ts
@@ -161,23 +161,20 @@ PrismaModule = _ts_decorate4([
 // src/backend/order/order.module.ts
 var import_common7 = require("@nestjs/common");
 
+// src/backend/utils/deepClone.ts
+var cloneable = class {
+  static deepCopy(source) {
+    return Array.isArray(source) ? source.map((item) => this.deepCopy(item)) : source instanceof Date ? new Date(source.getTime()) : source && typeof source === "object" ? Object.getOwnPropertyNames(source).reduce((o, prop) => {
+      Object.defineProperty(o, prop, Object.getOwnPropertyDescriptor(source, prop));
+      o[prop] = this.deepCopy(source[prop]);
+      return o;
+    }, Object.create(Object.getPrototypeOf(source))) : source;
+  }
+};
+__name(cloneable, "cloneable");
+
 // src/backend/order/order.service.ts
 var import_common5 = require("@nestjs/common");
-
-// src/backend/utils/deepClone.ts
-var deepClone = /* @__PURE__ */ __name((obj) => {
-  if (obj === null)
-    return null;
-  const clone = Object.assign({}, obj);
-  Object.keys(clone).forEach((key) => clone[key] = typeof obj[key] === "object" ? deepClone(obj[key]) : obj[key]);
-  if (Array.isArray(obj)) {
-    clone.length = obj.length;
-    return Array.from(clone);
-  }
-  return clone;
-}, "deepClone");
-
-// src/backend/order/order.service.ts
 function _ts_decorate5(decorators, target, key, desc) {
   var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
   if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
@@ -197,15 +194,9 @@ __name(_ts_metadata3, "_ts_metadata");
 var OrderService = /* @__PURE__ */ __name(class OrderService2 {
   constructor(prisma) {
     __publicField(this, "prisma");
+    __publicField(this, "prismaExtended");
     this.prisma = prisma;
-  }
-  async create() {
-    const result = await this.prisma.order.create({});
-    return result;
-  }
-  async findAll(payload) {
-    const { params } = payload;
-    const result = await this.prisma.$extends({
+    this.prismaExtended = this.prisma.$extends({
       result: {
         orderItem: {
           sub_total: {
@@ -229,9 +220,22 @@ var OrderService = /* @__PURE__ */ __name(class OrderService2 {
           }
         }
       }
-    }).order.findMany({
+    });
+  }
+  async create() {
+    const result = await this.prisma.order.create({});
+    return result;
+  }
+  async findAll(payload) {
+    const { params } = payload;
+    const { status } = params;
+    const result = await this.prismaExtended.order.findMany({
       where: {
-        status: params?.status
+        ...status ? {
+          status: {
+            equals: status
+          }
+        } : {}
       },
       include: {
         order_items: {
@@ -249,28 +253,38 @@ var OrderService = /* @__PURE__ */ __name(class OrderService2 {
         }
       }
     });
-    return deepClone(result);
+    return cloneable.deepCopy(result);
   }
   async findAllPaginated(payload) {
     const { params } = payload;
-    const { page, page_size, id } = params;
+    const { page, page_size, id, status } = params;
     const [count, items] = await this.prisma.$transaction([
-      this.prisma.order.count({
+      this.prismaExtended.order.count({
         where: {
           ...id ? {
             id: {
               equals: id
             }
+          } : {},
+          ...status ? {
+            status: {
+              equals: status
+            }
           } : {}
         }
       }),
-      this.prisma.order.findMany({
+      this.prismaExtended.order.findMany({
         take: page_size,
-        skip: page * page_size,
+        skip: (page - 1) * page_size,
         where: {
           ...id ? {
             id: {
               equals: id
+            }
+          } : {},
+          ...status ? {
+            status: {
+              equals: status
             }
           } : {}
         },
@@ -281,11 +295,32 @@ var OrderService = /* @__PURE__ */ __name(class OrderService2 {
     ]);
     return {
       count,
-      results: items
+      results: cloneable.deepCopy(items)
     };
   }
-  findOne(id) {
-    return `This action returns a #${id} order`;
+  async findOne(payload) {
+    const { id } = payload;
+    const result = await this.prismaExtended.order.findUnique({
+      where: {
+        id
+      },
+      include: {
+        order_items: {
+          select: {
+            id: true,
+            discount_price: true,
+            discount_total: true,
+            label_price: true,
+            order: true,
+            product: true,
+            quantity: true,
+            sell_price: true,
+            sub_total: true
+          }
+        }
+      }
+    });
+    return cloneable.deepCopy(result);
   }
   update(id, updateOrderDto) {
     console.log(updateOrderDto);
@@ -315,6 +350,14 @@ var import_nest_electron = require("@doubleshot/nest-electron");
 
 // src/model/general/index.ts
 var general_exports = {};
+__export(general_exports, {
+  ORDER_TYPES: () => ORDER_TYPES
+});
+var ORDER_TYPES = {
+  temp: "temp",
+  completed: "completed",
+  refunded: "refunded"
+};
 
 // src/backend/order/order.controller.ts
 function _ts_decorate6(decorators, target, key, desc) {
@@ -353,8 +396,8 @@ var OrderController = /* @__PURE__ */ __name(class OrderController2 {
   findAllPaginated(payload) {
     return this.orderService.findAllPaginated(payload);
   }
-  findOne(id) {
-    return this.orderService.findOne(id);
+  findOne(payload) {
+    return this.orderService.findOne(payload);
   }
   // @IpcHandle("updateOrder")
   // update(@Payload() updateOrderDto: UpdateOrderDto) {
@@ -390,7 +433,7 @@ _ts_decorate6([
   _ts_param(0, (0, import_microservices.Payload)()),
   _ts_metadata4("design:type", Function),
   _ts_metadata4("design:paramtypes", [
-    Number
+    typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
   ])
 ], OrderController.prototype, "findOne", null);
 _ts_decorate6([
@@ -461,62 +504,27 @@ var OrderItemService = /* @__PURE__ */ __name(class OrderItemService2 {
     this.prisma = prisma;
   }
   async create(payload) {
-    wss.clients.forEach(/* @__PURE__ */ __name(function each(client) {
-      const json = {
-        vendor_name: "\u063A\u0631\u0641\u0647 \u067E\u06CC\u0631\u0648\u0632\u06CC",
-        vendor_address: "\u0645\u06CC\u062F\u0627\u0646 \u0645\u06CC\u0648\u0647 \u0648 \u062A\u0631\u0647 \u0628\u0627\u0631 \u067E\u06CC\u0631\u0648\u0632\u06CC",
-        date: "1402-05-02",
-        time: "11:1",
-        number: 453,
-        total_discount: 62e3,
-        total_amount: 62e4,
-        total_payable_amount: 558e3,
-        order_items: [
-          {
-            name: "\u0628\u062F\u0648\u0646 \u0646\u0627\u0645",
-            quantity: 1,
-            discount: 1e4,
-            total_amount: 9e4,
-            unit_price: 1e5
-          },
-          {
-            name: "\u0628\u062F\u0648\u0646 \u0646\u0627\u0645",
-            quantity: 1,
-            discount: 52e3,
-            total_amount: 468e3,
-            unit_price: 52e4
-          }
-        ]
-      };
-      client.send(JSON.stringify(json));
-    }, "each"));
     const { body } = payload;
-    const { order_id, barcode, product_id } = body;
-    const product = await this.prisma.product.findFirst({
+    const { price_id, order_id } = body;
+    const price = await this.prisma.price.findUnique({
       where: {
-        ...barcode ? {
-          barcode: {
-            code: barcode
-          }
-        } : {},
-        ...product_id ? {
-          id: product_id
-        } : {}
+        id: price_id
       },
       include: {
-        price: true
+        product: true
       }
     });
-    if (!product)
+    if (!price)
       return null;
     if (order_id) {
       const order_item = await this.prisma.orderItem.findFirst({
         where: {
           order_id,
-          product_id: product.id
+          product_id: price.product_id,
+          label_price: price.base_price
         }
       });
-      if (!order_item) {
+      if (!order_item)
         return await this.prisma.orderItem.create({
           include: {
             order: true,
@@ -529,14 +537,13 @@ var OrderItemService = /* @__PURE__ */ __name(class OrderItemService2 {
           },
           data: {
             order_id,
-            product_id: product.id,
-            discount_price: 1e3,
-            label_price: product.price?.base_price || 0,
-            sell_price: (product.price?.base_price || 0) - (product.price?.base_discount || 0),
+            product_id: price.product_id,
+            discount_price: price.base_discount,
+            label_price: price.base_price,
+            sell_price: price.base_price - price.base_discount,
             quantity: 1
           }
         });
-      }
       return await this.prisma.orderItem.update({
         where: {
           id: order_item.id
@@ -566,10 +573,10 @@ var OrderItemService = /* @__PURE__ */ __name(class OrderItemService2 {
       },
       data: {
         order_id: order.id,
-        product_id: product.id,
-        discount_price: 1e3,
-        label_price: product.price?.base_price || 0,
-        sell_price: (product.price?.base_price || 0) - (product.price?.base_discount || 0),
+        product_id: price.product_id,
+        discount_price: price.base_discount,
+        label_price: price.base_price,
+        sell_price: price.base_price - price.base_discount,
         quantity: 1
       }
     });
@@ -755,13 +762,40 @@ var ProductService = /* @__PURE__ */ __name(class ProductService2 {
         }
       },
       include: {
-        barcode: true
+        barcode: true,
+        price: true
       }
     });
     return result;
   }
-  findOne(id) {
-    return `This action returns a #${id} product`;
+  async findOne(payload) {
+    const { id } = payload;
+    const result = await this.prisma.product.findUnique({
+      where: {
+        id
+      },
+      include: {
+        price: true
+      }
+    });
+    return result;
+  }
+  async findOneByBarcode(payload) {
+    const { body } = payload;
+    const { barcode } = body;
+    const result = await this.prisma.product.findFirst({
+      where: {
+        barcode: {
+          some: {
+            code: barcode
+          }
+        }
+      },
+      include: {
+        price: true
+      }
+    });
+    return result;
   }
   update(id, updateProductDto) {
     console.log(updateProductDto);
@@ -816,8 +850,11 @@ var ProductController = /* @__PURE__ */ __name(class ProductController2 {
   findAll(payload) {
     return this.productService.findAll(payload);
   }
-  findOne(id) {
-    return this.productService.findOne(id);
+  findOne(payload) {
+    return this.productService.findOne(payload);
+  }
+  findOneByBarcode(payload) {
+    return this.productService.findOneByBarcode(payload);
   }
   update(updateProductDto) {
     return this.productService.update(2, updateProductDto);
@@ -847,9 +884,17 @@ _ts_decorate12([
   _ts_param3(0, (0, import_microservices3.Payload)()),
   _ts_metadata8("design:type", Function),
   _ts_metadata8("design:paramtypes", [
-    Number
+    typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
   ])
 ], ProductController.prototype, "findOne", null);
+_ts_decorate12([
+  (0, import_nest_electron3.IpcHandle)("findOneProductByBarcode"),
+  _ts_param3(0, (0, import_microservices3.Payload)()),
+  _ts_metadata8("design:type", Function),
+  _ts_metadata8("design:paramtypes", [
+    typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
+  ])
+], ProductController.prototype, "findOneByBarcode", null);
 _ts_decorate12([
   (0, import_nest_electron3.IpcHandle)("updateProduct"),
   _ts_param3(0, (0, import_microservices3.Payload)()),
@@ -899,7 +944,11 @@ ProductModule = _ts_decorate13([
   })
 ], ProductModule);
 
-// src/backend/app.module.ts
+// src/backend/refund/refund.module.ts
+var import_common16 = require("@nestjs/common");
+
+// src/backend/refund/refund.service.ts
+var import_common14 = require("@nestjs/common");
 function _ts_decorate14(decorators, target, key, desc) {
   var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
   if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
@@ -911,14 +960,193 @@ function _ts_decorate14(decorators, target, key, desc) {
   return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
 __name(_ts_decorate14, "_ts_decorate");
+function _ts_metadata9(k, v) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function")
+    return Reflect.metadata(k, v);
+}
+__name(_ts_metadata9, "_ts_metadata");
+var RefundService = /* @__PURE__ */ __name(class RefundService2 {
+  constructor(prisma) {
+    __publicField(this, "prisma");
+    this.prisma = prisma;
+  }
+  async create(payload) {
+    const { body } = payload;
+    const { order_id, items, description } = body;
+    const result = await this.prisma.refund.create({
+      data: {
+        order_id,
+        description,
+        RefundItem: {
+          create: items.map((item) => ({
+            order_item_id: item.order_item,
+            order_item_quantity: item.quantity
+          }))
+        }
+      }
+    });
+    await this.prisma.order.update({
+      where: {
+        id: order_id
+      },
+      data: {
+        is_refunded: true,
+        status: "refunded"
+      }
+    });
+    return result;
+  }
+  findAll() {
+    return `This action returns all refund`;
+  }
+  findOne(id) {
+    return `This action returns a #${id} refund`;
+  }
+  update(id) {
+    return `This action updates a #${id} refund`;
+  }
+  remove(id) {
+    return `This action removes a #${id} refund`;
+  }
+}, "RefundService");
+RefundService = _ts_decorate14([
+  (0, import_common14.Injectable)(),
+  _ts_metadata9("design:type", Function),
+  _ts_metadata9("design:paramtypes", [
+    typeof PrismaService === "undefined" ? Object : PrismaService
+  ])
+], RefundService);
+
+// src/backend/refund/refund.controller.ts
+var import_common15 = require("@nestjs/common");
+var import_microservices4 = require("@nestjs/microservices");
+var import_nest_electron4 = require("@doubleshot/nest-electron");
+function _ts_decorate15(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate15, "_ts_decorate");
+function _ts_metadata10(k, v) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function")
+    return Reflect.metadata(k, v);
+}
+__name(_ts_metadata10, "_ts_metadata");
+function _ts_param4(paramIndex, decorator) {
+  return function(target, key) {
+    decorator(target, key, paramIndex);
+  };
+}
+__name(_ts_param4, "_ts_param");
+var RefundController = /* @__PURE__ */ __name(class RefundController2 {
+  constructor(refundService) {
+    __publicField(this, "refundService");
+    this.refundService = refundService;
+  }
+  create(payload) {
+    return this.refundService.create(payload);
+  }
+  findAll() {
+    return this.refundService.findAll();
+  }
+  findOne(id) {
+    return this.refundService.findOne(id);
+  }
+  // @IpcHandle("updateRefund")
+  // update(@Payload() updateRefundDto: unknown) {
+  //   return this.refundService.update(updateRefundDto.id, updateRefundDto);
+  // }
+  remove(id) {
+    return this.refundService.remove(id);
+  }
+}, "RefundController");
+_ts_decorate15([
+  (0, import_nest_electron4.IpcHandle)("createRefund"),
+  _ts_param4(0, (0, import_microservices4.Payload)()),
+  _ts_metadata10("design:type", Function),
+  _ts_metadata10("design:paramtypes", [
+    typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
+  ])
+], RefundController.prototype, "create", null);
+_ts_decorate15([
+  (0, import_nest_electron4.IpcHandle)("findAllRefund"),
+  _ts_metadata10("design:type", Function),
+  _ts_metadata10("design:paramtypes", [])
+], RefundController.prototype, "findAll", null);
+_ts_decorate15([
+  (0, import_nest_electron4.IpcHandle)("findOneRefund"),
+  _ts_param4(0, (0, import_microservices4.Payload)()),
+  _ts_metadata10("design:type", Function),
+  _ts_metadata10("design:paramtypes", [
+    Number
+  ])
+], RefundController.prototype, "findOne", null);
+_ts_decorate15([
+  (0, import_nest_electron4.IpcHandle)("removeRefund"),
+  _ts_param4(0, (0, import_microservices4.Payload)()),
+  _ts_metadata10("design:type", Function),
+  _ts_metadata10("design:paramtypes", [
+    Number
+  ])
+], RefundController.prototype, "remove", null);
+RefundController = _ts_decorate15([
+  (0, import_common15.Controller)(),
+  _ts_metadata10("design:type", Function),
+  _ts_metadata10("design:paramtypes", [
+    typeof RefundService === "undefined" ? Object : RefundService
+  ])
+], RefundController);
+
+// src/backend/refund/refund.module.ts
+function _ts_decorate16(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate16, "_ts_decorate");
+var RefundModule = /* @__PURE__ */ __name(class RefundModule2 {
+}, "RefundModule");
+RefundModule = _ts_decorate16([
+  (0, import_common16.Module)({
+    controllers: [
+      RefundController
+    ],
+    providers: [
+      RefundService
+    ]
+  })
+], RefundModule);
+
+// src/backend/app.module.ts
+function _ts_decorate17(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate17, "_ts_decorate");
 var AppModule = /* @__PURE__ */ __name(class AppModule2 {
 }, "AppModule");
-AppModule = _ts_decorate14([
-  (0, import_common14.Module)({
+AppModule = _ts_decorate17([
+  (0, import_common17.Module)({
     imports: [
       PrismaModule,
       import_config.ConfigModule.forRoot(),
-      import_nest_electron4.ElectronModule.registerAsync({
+      import_nest_electron5.ElectronModule.registerAsync({
         useFactory: async () => {
           const isDev = !import_electron.app.isPackaged;
           const win = new import_electron.BrowserWindow({
@@ -942,7 +1170,8 @@ AppModule = _ts_decorate14([
       }),
       OrderModule,
       OrderItemModule,
-      ProductModule
+      ProductModule,
+      RefundModule
     ],
     controllers: [
       AppController
@@ -981,7 +1210,7 @@ async function bootstrap() {
   try {
     await electronAppInit();
     const nestApp = await import_core.NestFactory.createMicroservice(AppModule, {
-      strategy: new import_nest_electron5.ElectronIpcTransport("IpcTransport")
+      strategy: new import_nest_electron6.ElectronIpcTransport("IpcTransport")
     });
     await nestApp.listen();
   } catch (error) {

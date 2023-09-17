@@ -49,7 +49,7 @@ const SingleOrder = forwardRef(
             <table className="w-full text-G2 text-right border border-G10 relative">
               <thead className="font-semibold z-10 bg-B11 sticky -top-1 border-b border-b-G10 text-GDesk">
                 <tr>
-                  <th scope="col">
+                  <th scope="col" className="w-[51px]">
                     <Button
                       color="danger"
                       variant="ghost"
@@ -115,11 +115,11 @@ const SingleOrder = forwardRef(
 
             <div className="flex flex-col">
               <span>تعداد کل اقلام: {total_count}</span>
-              <span>تخفیف: {total_dicsount.toLocaleString()} ریال</span>
+              <span>تخفیف: {total_dicsount?.toLocaleString()} ریال</span>
             </div>
             <div className="mr-auto">
               <span className="text-semibold text-primary">مبلغ کل: </span>
-              <strong>{total_price.toLocaleString()} ریال</strong>
+              <strong>{total_price?.toLocaleString()} ریال</strong>
             </div>
           </div>
           <Button
@@ -152,7 +152,7 @@ const SingleOrder = forwardRef(
               queryClient.invalidateQueries("open-orders");
             }}
             order_id={order_id}
-            total_price={total_price}
+            total_price={total_price!}
             user_phone={user_phone}
           />
         )}

@@ -10,6 +10,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from "react-query";
 import { toast } from "react-toastify";
 import { RemittanceSingle } from "./partials";
 import Skeleton from "react-loading-skeleton";
+import { ORDER_TYPES } from "@model/general";
 
 function RemittanceCreate() {
   const [search, setSearch] = useState("");
@@ -42,7 +43,11 @@ function RemittanceCreate() {
       ["remittance-temp-pagination"],
       ({ pageParam = 1 }) =>
         getRemittance({
-          params: { page: pageParam, page_size: 10, status: "temp" },
+          params: {
+            page: pageParam,
+            page_size: 10,
+            status: ORDER_TYPES["temp"],
+          },
         }),
       {
         getNextPageParam: (lastPage, page) => {

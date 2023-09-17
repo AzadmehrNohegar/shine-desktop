@@ -13,16 +13,16 @@ function ArrowRemittance(props: React.SVGProps<SVGSVGElement>) {
       <path
         d="M15.3652 3.46655H3.8319C2.44857 3.46655 1.3319 4.58322 1.3319 5.96655V8.73323"
         stroke="currentColor"
-        stroke-miterlimit="10"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M12.7319 0.833252L15.3652 3.46656L12.7319 6.09992"
         stroke="currentColor"
-        stroke-miterlimit="10"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeMiterlimit="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

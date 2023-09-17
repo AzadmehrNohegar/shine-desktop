@@ -19,10 +19,9 @@ export const getOrderPagination = async ({
   return { count, results };
 };
 
-export const getOrderById = async ({ id }: AxiosCustomRequestConfig) => {
-  const response = await http.get(`/order/order/${id}/`);
-  const data = await response.data;
-  return data;
+export const getOrderById = async ({ id }: IPCRendererRequestConfig) => {
+  const response = await onRequest("findOneOrder", null, null, id);
+  return response as Record<string, unknown>;
 };
 
 export const postOrderByIdInvoice = async ({
@@ -33,8 +32,8 @@ export const postOrderByIdInvoice = async ({
   return data;
 };
 
-export const postOrder = async ({ body }: AxiosCustomRequestConfig) => {
-  const response = await onRequest("createOrderItem", body);
+export const postOrder = async ({ body }: IPCRendererRequestConfig) => {
+  const response = await onRequest("createOrderItem", body!);
   return response;
 };
 

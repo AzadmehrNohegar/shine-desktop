@@ -6,12 +6,11 @@ type product = {
 
 interface ISingleHistoryRow {
   label_price: number;
-  discount_amount: number;
   quantity: number;
   product: product;
   index: number;
-  total_discount_amount: number;
-  sub_total_amount: number;
+  discount_total: number;
+  sub_total: number;
   id: number;
 }
 
@@ -19,8 +18,8 @@ function SingleHistoryRow({
   label_price,
   quantity,
   product,
-  total_discount_amount,
-  sub_total_amount,
+  sub_total,
+  discount_total,
 }: ISingleHistoryRow) {
   const { sku, name } = product;
 
@@ -41,10 +40,10 @@ function SingleHistoryRow({
         {label_price}
       </td>
       <td className="px-2 py-3 truncate border-l border-l-G10 text-right">
-        <strong>{total_discount_amount.toLocaleString()}</strong>{" "}
+        <strong>{discount_total.toLocaleString()}</strong>{" "}
       </td>
       <td className="px-2 py-3 truncate text-right">
-        <strong>{sub_total_amount.toLocaleString()}</strong>{" "}
+        <strong>{sub_total.toLocaleString()}</strong>{" "}
       </td>
     </tr>
   );

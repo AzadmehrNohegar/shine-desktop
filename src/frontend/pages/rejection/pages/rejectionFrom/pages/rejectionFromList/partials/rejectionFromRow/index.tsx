@@ -1,19 +1,23 @@
+import { useComputedOrderItem } from "@frontend/utils";
+import { OrderItem } from "@prisma/client";
+import clsx from "clsx";
 import { Link } from "react-router-dom";
 
 interface ISingleRejectionRow {
   created_date: string;
-  total_amount: number;
   id: number;
-  order_items: any[];
-  order_items_count: number;
+  order_items: OrderItem[];
+  is_refunded: boolean;
 }
 
 function SingleRejectionRow({
   created_date,
-  total_amount,
   id,
-  order_items_count,
+  order_items,
+  is_refunded,
 }: ISingleRejectionRow) {
+  const { total_count, total_price } = useComputedOrderItem(order_items);
+
   return (
     <tr>
       <td className="px-6 py-4 border-l border-l-G10">{id}</td>
@@ -24,16 +28,26 @@ function SingleRejectionRow({
         }).format(new Date(created_date))}
       </td>
       <td className="px-6 py-4 truncate border-l border-l-G10">
-        <strong>{total_amount.toLocaleString()}</strong>{" "}
+        <strong>{total_price?.toLocaleString()}</strong>{" "}
         <span className="text-sm font-light">ریال</span>
       </td>
       <td className="px-6 py-4 truncate border-l border-l-G10">
-        {order_items_count}
+        {total_count}
       </td>
       <td className="px-6 py-4 truncate">
         <Link
           to={`./${id}`}
-          className="px-10 py-2 bg-primary rounded-lg text-white"
+          onClick={(e) => {
+            if (is_refunded) {
+              e.stopPropagation();
+              e.preventDefault();
+            }
+          }}
+          className={clsx(
+            is_refunded &&
+              "px-10 py-2 rounded-lg bg-disabled text-G4 cursor-not-allowed",
+            !is_refunded && "px-10 py-2 bg-primary rounded-lg text-white"
+          )}
         >
           مرجوع
         </Link>
