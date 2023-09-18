@@ -20,7 +20,6 @@ export class ProductService {
     };
     const result = await this.prisma.product.create({
       data: {
-        sku: uuidv4(),
         internal_code: uuidv4(),
         name,
         price: {

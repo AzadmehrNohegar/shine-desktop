@@ -753,7 +753,6 @@ var ProductService = /* @__PURE__ */ __name(class ProductService2 {
     const { name, price, barcode } = body;
     const result = await this.prisma.product.create({
       data: {
-        sku: (0, import_uuid.v4)(),
         internal_code: (0, import_uuid.v4)(),
         name,
         price: {
@@ -1332,7 +1331,7 @@ AppModule = _ts_decorate17([
           win.on("closed", () => {
             win.destroy();
           });
-          const URL = isDev ? "http://[::1]:5173" : `file://${(0, import_path.join)(import_electron.app.getAppPath(), "dist/frontend/index.html")}`;
+          const URL = isDev ? process.env.DS_RENDERER_URL : `file://${(0, import_path.join)(import_electron.app.getAppPath(), "dist/frontend/index.html")}`;
           win.loadURL(URL);
           return {
             win

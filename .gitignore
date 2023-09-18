@@ -5,8 +5,8 @@ logs
 **/*.back.*
 
 node_modules
+dist
 bower_components
 # Keep environment variables out of version control
 .env
-dist
 yarn-error.log
