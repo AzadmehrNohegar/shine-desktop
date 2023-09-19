@@ -538,9 +538,9 @@ var OrderItemService = /* @__PURE__ */ __name(class OrderItemService2 {
           data: {
             order_id,
             product_id: price.product_id,
-            discount_price: price.base_discount,
+            discount_price: price.base_price * price.base_discount_percentage / 100,
             label_price: price.base_price,
-            sell_price: price.base_price - price.base_discount,
+            sell_price: price.base_price - price.base_price * (1 - price.base_discount_percentage / 100),
             quantity: 1
           }
         });
@@ -574,9 +574,9 @@ var OrderItemService = /* @__PURE__ */ __name(class OrderItemService2 {
       data: {
         order_id: order.id,
         product_id: price.product_id,
-        discount_price: price.base_discount,
+        discount_price: price.base_price * (1 - price.base_discount_percentage / 100),
         label_price: price.base_price,
-        sell_price: price.base_price - price.base_discount,
+        sell_price: price.base_price - price.base_price * (1 - price.base_discount_percentage / 100),
         quantity: 1
       }
     });
@@ -726,6 +726,7 @@ var import_common13 = require("@nestjs/common");
 
 // src/backend/product/product.service.ts
 var import_common11 = require("@nestjs/common");
+var import_uuid = require("uuid");
 function _ts_decorate11(decorators, target, key, desc) {
   var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
   if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
@@ -747,9 +748,29 @@ var ProductService = /* @__PURE__ */ __name(class ProductService2 {
     __publicField(this, "prisma");
     this.prisma = prisma;
   }
-  create(createProductDto) {
-    console.log(createProductDto);
-    return "This action adds a new product";
+  async create(payload) {
+    const { body } = payload;
+    const { name, price, barcode } = body;
+    const result = await this.prisma.product.create({
+      data: {
+        sku: (0, import_uuid.v4)(),
+        internal_code: (0, import_uuid.v4)(),
+        name,
+        price: {
+          create: price.map((item) => ({
+            inventory: item.inventory,
+            base_price: item.base_price,
+            base_discount_percentage: item.base_discount_percentage
+          }))
+        },
+        barcode: {
+          create: barcode.map((item) => ({
+            code: item.code
+          }))
+        }
+      }
+    });
+    return result;
   }
   async findAll(payload) {
     const { params } = payload;
@@ -759,7 +780,8 @@ var ProductService = /* @__PURE__ */ __name(class ProductService2 {
       where: {
         name: {
           contains: search
-        }
+        },
+        is_active: true
       },
       include: {
         barcode: true,
@@ -768,6 +790,62 @@ var ProductService = /* @__PURE__ */ __name(class ProductService2 {
     });
     return result;
   }
+  async findAllPaginated(payload) {
+    const { params } = payload;
+    const { page, page_size, search } = params;
+    const [count, items] = await this.prisma.$transaction([
+      this.prisma.product.count({
+        where: {
+          OR: [
+            {
+              barcode: {
+                some: {
+                  code: {
+                    contains: search
+                  }
+                }
+              }
+            },
+            {
+              name: {
+                contains: search
+              }
+            }
+          ]
+        }
+      }),
+      this.prisma.product.findMany({
+        take: page_size,
+        skip: (page - 1) * page_size,
+        where: {
+          OR: [
+            {
+              barcode: {
+                some: {
+                  code: {
+                    contains: search
+                  }
+                }
+              }
+            },
+            {
+              name: {
+                contains: search
+              }
+            }
+          ]
+        },
+        include: {
+          barcode: true,
+          price: true
+        }
+      })
+    ]);
+    return {
+      count,
+      results: cloneable.deepCopy(items)
+    };
+  }
   async findOne(payload) {
     const { id } = payload;
     const result = await this.prisma.product.findUnique({
@@ -775,7 +853,8 @@ var ProductService = /* @__PURE__ */ __name(class ProductService2 {
         id
       },
       include: {
-        price: true
+        price: true,
+        barcode: true
       }
     });
     return result;
@@ -797,9 +876,79 @@ var ProductService = /* @__PURE__ */ __name(class ProductService2 {
     });
     return result;
   }
-  update(id, updateProductDto) {
-    console.log(updateProductDto);
-    return `This action updates a #${id} product`;
+  async update(payload) {
+    const { id, body } = payload;
+    const result = await this.prisma.product.update({
+      where: {
+        id
+      },
+      include: {
+        price: true,
+        barcode: true
+      },
+      data: {
+        name: body.name,
+        barcode: {
+          deleteMany: {
+            code: {
+              notIn: body.barcode.map((item) => item.code)
+            }
+          },
+          connectOrCreate: body.barcode.map((item) => ({
+            where: {
+              code: item.code
+            },
+            create: {
+              code: item.code
+            }
+          }))
+        },
+        price: {
+          deleteMany: {
+            base_price: {
+              notIn: body.price.map((item) => item.base_price)
+            }
+          },
+          updateMany: body.price.map((item) => ({
+            where: {
+              base_price: item.base_price
+            },
+            data: {
+              base_price: item.base_price,
+              base_discount_percentage: item.base_discount_percentage,
+              inventory: item.inventory
+            }
+          })),
+          connectOrCreate: body.price.map((item) => ({
+            create: {
+              inventory: item.inventory,
+              base_discount_percentage: item.base_discount_percentage,
+              base_price: item.base_price
+            },
+            where: {
+              product_id_base_price: {
+                base_price: item.base_price,
+                product_id: id
+              }
+            }
+          }))
+        }
+      }
+    });
+    return result;
+  }
+  async updateProductActivation(payload) {
+    const { id, body } = payload;
+    const { is_active } = body;
+    const result = await this.prisma.product.update({
+      where: {
+        id
+      },
+      data: {
+        is_active
+      }
+    });
+    return result;
   }
   remove(id) {
     return `This action removes a #${id} product`;
@@ -844,11 +993,14 @@ var ProductController = /* @__PURE__ */ __name(class ProductController2 {
     __publicField(this, "productService");
     this.productService = productService;
   }
-  create(createProductDto) {
-    return this.productService.create(createProductDto);
+  create(payload) {
+    return this.productService.create(payload);
   }
   findAll(payload) {
     return this.productService.findAll(payload);
+  }
+  findAllPaginated(payload) {
+    return this.productService.findAllPaginated(payload);
   }
   findOne(payload) {
     return this.productService.findOne(payload);
@@ -856,8 +1008,11 @@ var ProductController = /* @__PURE__ */ __name(class ProductController2 {
   findOneByBarcode(payload) {
     return this.productService.findOneByBarcode(payload);
   }
-  update(updateProductDto) {
-    return this.productService.update(2, updateProductDto);
+  update(payload) {
+    return this.productService.update(payload);
+  }
+  updateActivation(payload) {
+    return this.productService.updateProductActivation(payload);
   }
   remove(id) {
     return this.productService.remove(id);
@@ -868,7 +1023,7 @@ _ts_decorate12([
   _ts_param3(0, (0, import_microservices3.Payload)()),
   _ts_metadata8("design:type", Function),
   _ts_metadata8("design:paramtypes", [
-    Object
+    typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
   ])
 ], ProductController.prototype, "create", null);
 _ts_decorate12([
@@ -879,6 +1034,14 @@ _ts_decorate12([
     typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
   ])
 ], ProductController.prototype, "findAll", null);
+_ts_decorate12([
+  (0, import_nest_electron3.IpcHandle)("findAllProductPaginated"),
+  _ts_param3(0, (0, import_microservices3.Payload)()),
+  _ts_metadata8("design:type", Function),
+  _ts_metadata8("design:paramtypes", [
+    typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
+  ])
+], ProductController.prototype, "findAllPaginated", null);
 _ts_decorate12([
   (0, import_nest_electron3.IpcHandle)("findOneProduct"),
   _ts_param3(0, (0, import_microservices3.Payload)()),
@@ -900,9 +1063,17 @@ _ts_decorate12([
   _ts_param3(0, (0, import_microservices3.Payload)()),
   _ts_metadata8("design:type", Function),
   _ts_metadata8("design:paramtypes", [
-    Object
+    typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
   ])
 ], ProductController.prototype, "update", null);
+_ts_decorate12([
+  (0, import_nest_electron3.IpcHandle)("updateProductActivation"),
+  _ts_param3(0, (0, import_microservices3.Payload)()),
+  _ts_metadata8("design:type", Function),
+  _ts_metadata8("design:paramtypes", [
+    typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
+  ])
+], ProductController.prototype, "updateActivation", null);
 _ts_decorate12([
   (0, import_nest_electron3.IpcHandle)("removeProduct"),
   _ts_param3(0, (0, import_microservices3.Payload)()),
@@ -1161,7 +1332,7 @@ AppModule = _ts_decorate17([
           win.on("closed", () => {
             win.destroy();
           });
-          const URL = isDev ? process.env.DS_RENDERER_URL : `file://${(0, import_path.join)(import_electron.app.getAppPath(), "dist/frontend/index.html")}`;
+          const URL = isDev ? "http://[::1]:5173" : `file://${(0, import_path.join)(import_electron.app.getAppPath(), "dist/frontend/index.html")}`;
           win.loadURL(URL);
           return {
             win

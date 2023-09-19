@@ -1,1 +1,0 @@
-export { InventoryTableRow } from "./inventoryTableRow";

@@ -5,3 +5,4 @@ export { usePersianConvert } from "./usePersianConvert";
 export { usePrevious } from "./usePrevious";
 export { useDebouncedValue } from "./useDeboucedValue";
 export { useComputedOrderItem } from "./useComputedOrderItem";
+export { useActiveElement } from "./useActiveElement";

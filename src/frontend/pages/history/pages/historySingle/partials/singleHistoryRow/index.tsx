@@ -1,7 +1,7 @@
 type product = {
   id: number;
-  sku: string;
   name: string;
+  internal_code: string;
 };
 
 interface ISingleHistoryRow {
@@ -21,14 +21,14 @@ function SingleHistoryRow({
   sub_total,
   discount_total,
 }: ISingleHistoryRow) {
-  const { sku, name } = product;
+  const { internal_code, name } = product;
 
   return (
     <tr>
       <td className="px-2 py-3 border-l border-l-G10 text-right">
         <span className="text-sm">
           {name}
-          {sku}
+          {internal_code}
         </span>
       </td>
       <td className="px-2 py-3 border-l border-l-G10 text-right">

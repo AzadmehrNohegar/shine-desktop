@@ -63,12 +63,12 @@ function SelectPriceModal({
         </Button>
       </HeadlessDialog.Title>
       <HeadlessDialog.Panel>
-        <ul className="p-4 divide-y flex flex-col">
+        <ul className="p-4 flex flex-wrap justify-between">
           {(data as compositeProduct)?.price.map((item) => (
-            <li key={item.id} className="py-2 font-bold text-xl">
+            <li key={item.id} className="py-2 font-bold text-xl basis-modified">
               <Button
-                className="w-full text-start flex items-center justify-between"
-                variant="ghost"
+                className="w-full text-start flex items-center justify-between min-h-[100px]"
+                variant="outline"
                 onClick={() => handleCreateOrderItem(item.id)}
               >
                 <span>قیمت محصول:</span>

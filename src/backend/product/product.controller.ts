@@ -9,13 +9,18 @@ export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @IpcHandle("createProduct")
-  create(@Payload() createProductDto: unknown) {
-    return this.productService.create(createProductDto);
+  create(@Payload() payload: general.IPCRendererRequestConfig) {
+    return this.productService.create(payload);
   }
 
   @IpcHandle("findAllProduct")
   findAll(@Payload() payload: general.IPCRendererRequestConfig) {
     return this.productService.findAll(payload);
+  }
+
+  @IpcHandle("findAllProductPaginated")
+  findAllPaginated(@Payload() payload: general.IPCRendererRequestConfig) {
+    return this.productService.findAllPaginated(payload);
   }
 
   @IpcHandle("findOneProduct")
@@ -29,8 +34,13 @@ export class ProductController {
   }
 
   @IpcHandle("updateProduct")
-  update(@Payload() updateProductDto: unknown) {
-    return this.productService.update(2, updateProductDto);
+  update(@Payload() payload: general.IPCRendererRequestConfig) {
+    return this.productService.update(payload);
+  }
+
+  @IpcHandle("updateProductActivation")
+  updateActivation(@Payload() payload: general.IPCRendererRequestConfig) {
+    return this.productService.updateProductActivation(payload);
   }
 
   @IpcHandle("removeProduct")

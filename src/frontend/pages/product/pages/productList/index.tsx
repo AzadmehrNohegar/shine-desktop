@@ -1,23 +1,29 @@
-import { getProduct } from "@frontend/api";
+import { getProductPagination } from "@frontend/api";
 import { Input } from "@frontend/components";
-import { useDebouncedValue } from "@frontend/utils";
 import { useState } from "react";
 import { useQuery } from "react-query";
-import { InventoryTableRow } from "./partials";
 import { TablePagination } from "@frontend/shared";
+import { ProductTableRow } from "./partials";
+import { Barcode, Price, Product } from "@prisma/client";
+import { Plus } from "@frontend/assets/svg";
+import { Link } from "react-router-dom";
 
-function InventoryPage() {
+type compositeProductBarcode = Product & {
+  price: Price[];
+  barcode: Barcode[];
+};
+
+function ProductList() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const debouncedSearch = useDebouncedValue<string>(search, 300);
 
   const handleSearch = (val: string) => setSearch(val);
 
   const { data } = useQuery(
-    ["inventory-pagination", debouncedSearch, page],
+    ["product-pagination", search, page],
     () =>
-      getProduct({
-        params: { page, page_size: 10, search: debouncedSearch },
+      getProductPagination({
+        params: { page, page_size: 10, search: search },
       }),
     {
       keepPreviousData: true,
@@ -33,8 +39,16 @@ function InventoryPage() {
           type="text"
           value={search}
           handleChange={handleSearch}
+          className="min-w-[400px]"
           placeholder="نام یا بارکد محصول..."
         />
+        <Link
+          to="./create"
+          className="flex items-center ms-auto gap-x-4 h-fit w-fit px-10 py-5 text-xl bg-primary text-white rounded-lg"
+        >
+          <Plus />
+          افزودن محصول
+        </Link>
       </div>
       <table className="w-full text-G2 text-right border border-G10 relative">
         <thead className="font-semibold z-10 bg-B11 sticky -top-1 border-b border-b-G10 text-GDesk">
@@ -43,8 +57,10 @@ function InventoryPage() {
               نام محصول
             </th>
             <th scope="col" className="px-6 py-3">
-              بارکد
-              <span className="text-2xs font-light text-G2">(SKU)</span>
+              بارکدها
+            </th>
+            <th scope="col" className="px-6 py-3">
+              موجودی
             </th>
             <th scope="col" className="px-6 py-3">
               قیمت پایه
@@ -63,14 +79,15 @@ function InventoryPage() {
           </tr>
         </thead>
         <tbody className="bg-white">
-          {data?.results.map((item: any, index: number) => (
-            <InventoryTableRow key={index} {...item} />
-          ))}
+          {data?.results.map((item: unknown) => {
+            const { id, ...rest } = item as compositeProductBarcode;
+            return <ProductTableRow key={id} id={id} {...rest} />;
+          })}
         </tbody>
       </table>
-      <TablePagination count={0} page={0} setPage={setPage} />
+      <TablePagination count={data?.count || 0} page={page} setPage={setPage} />
     </div>
   );
 }
 
-export default InventoryPage;
+export default ProductList;

@@ -4,7 +4,7 @@ import { rejectionOrderItem } from "@model/general";
 
 type product = {
   id: number;
-  sku: string;
+  internal_code: string;
   name: string;
 };
 
@@ -27,7 +27,7 @@ function SingleRejectionFromRow({
   handleIncrementOrderItemQuantity,
   ...rest
 }: ISingleRejectionFromRow) {
-  const { sku, name } = product;
+  const { internal_code, name } = product;
   console.log(rest, "rest");
 
   return (
@@ -35,7 +35,7 @@ function SingleRejectionFromRow({
       <td className="px-2 py-3 border-l border-l-G10 text-right">
         <span className="text-sm">
           {name}
-          {sku}
+          {internal_code}
         </span>
       </td>
       <td className="px-2 py-3 border-l border-l-G10 text-right">

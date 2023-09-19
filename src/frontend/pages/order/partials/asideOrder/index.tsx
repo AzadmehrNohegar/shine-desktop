@@ -103,7 +103,8 @@ function AsideOrder({ order_id }: IAsideOrderProps) {
               {data?.length > 0 && (
                 <div className="max-h-full overflow-y-auto flex flex-col items-start justify-start gap-y-2 text-md">
                   {data?.map((item: unknown) => {
-                    const { id, name, price, sku } = item as compositeProduct;
+                    const { id, name, price, internal_code } =
+                      item as compositeProduct;
                     return (
                       <Button
                         key={id}
@@ -116,7 +117,7 @@ function AsideOrder({ order_id }: IAsideOrderProps) {
                           <Plus />
                         </span>
                         <span>
-                          {name} {sku}
+                          {name} {internal_code}
                         </span>
                       </Button>
                     );

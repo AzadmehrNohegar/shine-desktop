@@ -45,7 +45,7 @@ const SingleOrder = forwardRef(
       <Fragment>
         <ScanDetection order_id={order_id} />
         <div className="h-full flex flex-col gap-y-4" ref={ref}>
-          <div className="relative text-sm overflow-x-auto text-right h-full max-h-[380px] overflow-y-auto shadow-card rounded-lg">
+          <div className="relative text-sm overflow-x-auto text-right h-full max-h-[358px] xl:max-h-[600px] overflow-y-auto shadow-card rounded-lg">
             <table className="w-full text-G2 text-right border border-G10 relative">
               <thead className="font-semibold z-10 bg-B11 sticky -top-1 border-b border-b-G10 text-GDesk">
                 <tr>

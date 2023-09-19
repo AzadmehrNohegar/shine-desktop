@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from "react-query";
 
 type product = {
   id: number;
-  sku: string;
+  internal_code: string;
   name: string;
 };
 
@@ -28,7 +28,7 @@ function SingleOrderRow({
   sub_total,
   id,
 }: ISingleOrderRow) {
-  const { sku, name } = product;
+  const { internal_code, name } = product;
 
   const [labelPriceEditable, setLabelPriceEditable] = useState<string>(
     label_price.toString()
@@ -96,7 +96,7 @@ function SingleOrderRow({
       <td className="px-2 py-3 border-l border-l-G10 text-right">
         <span className="text-sm">
           {name}
-          {sku}
+          {internal_code}
         </span>
       </td>
       <td className="px-2 py-3 border-l border-l-G10 text-right">

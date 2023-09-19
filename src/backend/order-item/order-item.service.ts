@@ -48,9 +48,12 @@ export class OrderItemService {
           data: {
             order_id,
             product_id: price.product_id,
-            discount_price: price.base_discount,
+            discount_price:
+              (price.base_price * price.base_discount_percentage) / 100,
             label_price: price.base_price,
-            sell_price: price.base_price - price.base_discount,
+            sell_price:
+              price.base_price -
+              price.base_price * (1 - price.base_discount_percentage / 100),
             quantity: 1,
           },
         });
@@ -86,9 +89,12 @@ export class OrderItemService {
       data: {
         order_id: order.id,
         product_id: price.product_id,
-        discount_price: price.base_discount,
+        discount_price:
+          price.base_price * (1 - price.base_discount_percentage / 100),
         label_price: price.base_price,
-        sell_price: price.base_price - price.base_discount,
+        sell_price:
+          price.base_price -
+          price.base_price * (1 - price.base_discount_percentage / 100),
         quantity: 1,
       },
     });

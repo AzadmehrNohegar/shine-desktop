@@ -7,14 +7,13 @@ generator client {
 
 datasource db {
   provider     = "sqlite"
-  url          = "file:\\db\\shine-desktop.db"
+  url          = "file:/Users/Shared/db/shine-desktop.db"
   relationMode = "foreignKeys"
 }
 
 model Product {
   id            Int         @id @default(autoincrement())
-  sku           String
-  name          String
+  name          String      @unique
   internal_code String
   barcode       Barcode[]
   price         Price[]
@@ -24,22 +23,22 @@ model Product {
 
 model Barcode {
   id         Int     @id @default(autoincrement())
-  code       String
-  product    Product @relation(fields: [product_id], references: [id])
+  code       String  @unique
+  product    Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
   product_id Int
 
-  @@unique([product_id, id])
+  @@unique([product_id, code])
 }
 
 model Price {
-  id            Int     @id @default(autoincrement())
-  product       Product @relation(fields: [product_id], references: [id])
-  product_id    Int
-  inventory     Int
-  base_price    Int
-  base_discount Int
+  id                       Int     @id @default(autoincrement())
+  product                  Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  product_id               Int
+  inventory                Int
+  base_price               Int
+  base_discount_percentage Int?    @default(0)
 
-  @@unique([product_id, id])
+  @@unique([product_id, base_price])
 }
 
 model Order {
@@ -56,7 +55,7 @@ model OrderItem {
   id             Int         @id @default(autoincrement())
   order          Order       @relation(fields: [order_id], references: [id], onDelete: Cascade)
   order_id       Int
-  product        Product     @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  product        Product     @relation(fields: [product_id], references: [id], onDelete: Cascade)
   product_id     Int
   quantity       Int
   label_price    Int
