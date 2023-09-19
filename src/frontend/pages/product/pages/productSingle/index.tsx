@@ -6,9 +6,6 @@ import { Button, Input } from "@frontend/components";
 import { Plus } from "@frontend/assets/svg";
 import { useMutation, useQuery } from "react-query";
 import { getProductById, postProduct, putProduct } from "@frontend/api";
-import { useDebouncedValue } from "@frontend/utils";
-import { useEffect, useState } from "react";
-import useScanDetection from "use-scan-detection";
 import { toast } from "react-toastify";
 
 type compositeProduct = Product & {
@@ -18,11 +15,6 @@ type compositeProduct = Product & {
 
 function ProductSingle() {
   const { id } = useParams();
-
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  const [codeValue, setCodeValue] = useState<String | string>("");
-
-  const debouncedValue = useDebouncedValue(codeValue, 100);
 
   const { data } = useQuery(
     `product-single-${id}`,
@@ -108,20 +100,6 @@ function ProductSingle() {
       }
     }
   };
-
-  useEffect(() => {
-    if (debouncedValue !== "" && debouncedValue.length > 10) {
-      barcodesAppend({
-        code: debouncedValue as string,
-      });
-      setCodeValue("");
-    }
-  }, [debouncedValue]);
-
-  useScanDetection({
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    onComplete: (code: String) => setCodeValue(code),
-  });
 
   return (
     <form className="px-4 w-full">
