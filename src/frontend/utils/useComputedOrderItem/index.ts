@@ -6,11 +6,11 @@ export const useComputedOrderItem = (order_items?: OrderItem[]) => {
     if (order_items)
       return order_items
         .map((item) => {
-          const { label_price, quantity } = item as {
-            label_price: number;
+          const { sell_price, quantity } = item as {
+            sell_price: number;
             quantity: number;
           };
-          return label_price * quantity;
+          return sell_price * quantity;
         })
         .reduce((prev: number, curr: number) => prev + curr, 0);
     return null;

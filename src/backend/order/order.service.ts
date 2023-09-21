@@ -54,12 +54,14 @@ export class OrderService {
 
       include: {
         order_items: {
+          orderBy: {
+            id: "desc",
+          },
           select: {
             id: true,
             discount_price: true,
             discount_total: true,
             label_price: true,
-            order: true,
             product: true,
             quantity: true,
             sell_price: true,
@@ -118,6 +120,9 @@ export class OrderService {
               }
             : {}),
         },
+        orderBy: {
+          id: "desc",
+        },
         include: {
           order_items: true,
         },
@@ -137,6 +142,9 @@ export class OrderService {
       },
       include: {
         order_items: {
+          orderBy: {
+            id: "desc",
+          },
           select: {
             id: true,
             discount_price: true,
@@ -151,12 +159,8 @@ export class OrderService {
         },
       },
     });
-    return cloneable.deepCopy(result);
-  }
 
-  update(id: number, updateOrderDto: unknown) {
-    console.log(updateOrderDto);
-    return `This action updates a #${id} order`;
+    return cloneable.deepCopy(result);
   }
 
   async remove(id: number) {

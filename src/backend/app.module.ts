@@ -9,11 +9,15 @@ import { PrismaModule } from "./prisma/prisma.module";
 import { OrderModule } from "./order/order.module";
 import { OrderItemModule } from "./order-item/order-item.module";
 import { ProductModule } from "./product/product.module";
-import { RefundModule } from './refund/refund.module';
+import { RefundModule } from "./refund/refund.module";
+import { PaymentModule } from "./payment/payment.module";
+import { ApiModule } from "./api/api.module";
+import { PosModule } from './pos/pos.module';
 
 @Module({
   imports: [
     PrismaModule,
+    ApiModule,
     ConfigModule.forRoot(),
     ElectronModule.registerAsync({
       useFactory: async () => {
@@ -45,6 +49,8 @@ import { RefundModule } from './refund/refund.module';
     OrderItemModule,
     ProductModule,
     RefundModule,
+    PaymentModule,
+    PosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

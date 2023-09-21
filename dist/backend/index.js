@@ -41,13 +41,13 @@ __export(backend_exports, {
 module.exports = __toCommonJS(backend_exports);
 var import_core = require("@nestjs/core");
 var import_electron2 = require("electron");
-var import_nest_electron6 = require("@doubleshot/nest-electron");
+var import_nest_electron8 = require("@doubleshot/nest-electron");
 
 // src/backend/app.module.ts
 var import_path = require("path");
-var import_common17 = require("@nestjs/common");
+var import_common25 = require("@nestjs/common");
 var import_config = require("@nestjs/config");
-var import_nest_electron5 = require("@doubleshot/nest-electron");
+var import_nest_electron7 = require("@doubleshot/nest-electron");
 var import_electron = require("electron");
 
 // src/backend/app.service.ts
@@ -239,12 +239,14 @@ var OrderService = /* @__PURE__ */ __name(class OrderService2 {
       },
       include: {
         order_items: {
+          orderBy: {
+            id: "desc"
+          },
           select: {
             id: true,
             discount_price: true,
             discount_total: true,
             label_price: true,
-            order: true,
             product: true,
             quantity: true,
             sell_price: true,
@@ -288,6 +290,9 @@ var OrderService = /* @__PURE__ */ __name(class OrderService2 {
             }
           } : {}
         },
+        orderBy: {
+          id: "desc"
+        },
         include: {
           order_items: true
         }
@@ -306,6 +311,9 @@ var OrderService = /* @__PURE__ */ __name(class OrderService2 {
       },
       include: {
         order_items: {
+          orderBy: {
+            id: "desc"
+          },
           select: {
             id: true,
             discount_price: true,
@@ -321,10 +329,6 @@ var OrderService = /* @__PURE__ */ __name(class OrderService2 {
       }
     });
     return cloneable.deepCopy(result);
-  }
-  update(id, updateOrderDto) {
-    console.log(updateOrderDto);
-    return `This action updates a #${id} order`;
   }
   async remove(id) {
     const result = await this.prisma.order.delete({
@@ -399,10 +403,6 @@ var OrderController = /* @__PURE__ */ __name(class OrderController2 {
   findOne(payload) {
     return this.orderService.findOne(payload);
   }
-  // @IpcHandle("updateOrder")
-  // update(@Payload() updateOrderDto: UpdateOrderDto) {
-  //   return this.orderService.update(updateOrderDto.id, updateOrderDto);
-  // }
   remove({ id }) {
     return this.orderService.remove(id);
   }
@@ -482,6 +482,25 @@ var import_common10 = require("@nestjs/common");
 
 // src/backend/order-item/order-item.service.ts
 var import_common8 = require("@nestjs/common");
+
+// src/backend/utils/serializedError.ts
+function serializedError(reason) {
+  return {
+    reason
+  };
+}
+__name(serializedError, "serializedError");
+
+// src/backend/constants/locale.ts
+var ERROR_TYPES = {
+  NO_POS_RESPONSE: "\u062C\u0648\u0627\u0628\u06CC \u0627\u0632 \u06A9\u0627\u0631\u062A\u062E\u0648\u0627\u0646 \u062F\u0631\u06CC\u0627\u0641\u062A \u0646\u0634\u062F.",
+  LESS_THAN_MIN: "\u0645\u0642\u062F\u0627\u0631 \u0633\u0641\u0627\u0631\u0634 \u0627\u0632 \u062D\u062F\u0627\u0642\u0644 \u06A9\u0645\u062A\u0631 \u0627\u0633\u062A.",
+  ORDER_NOT_FOUND: "\u0633\u0641\u0627\u0631\u0634 \u0645\u0648\u0631\u062F \u0646\u0638\u0631 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F.",
+  PRICE_NOT_FOUND: "\u0642\u06CC\u0645\u062A \u0645\u0648\u0631\u062F \u0646\u0638\u0631 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F.",
+  COMMON_CREATION_ERROR: "\u0645\u0634\u06A9\u0644\u06CC \u062F\u0631 \u0627\u06CC\u062C\u0627\u062F \u0641\u0631\u0627\u06CC\u0646\u062F \u0627\u06CC\u062C\u0627\u062F \u067E\u06CC\u0634 \u0622\u0645\u062F."
+};
+
+// src/backend/order-item/order-item.service.ts
 function _ts_decorate8(decorators, target, key, desc) {
   var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
   if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
@@ -515,7 +534,7 @@ var OrderItemService = /* @__PURE__ */ __name(class OrderItemService2 {
       }
     });
     if (!price)
-      return null;
+      return serializedError(ERROR_TYPES.PRICE_NOT_FOUND);
     if (order_id) {
       const order_item = await this.prisma.orderItem.findFirst({
         where: {
@@ -538,9 +557,9 @@ var OrderItemService = /* @__PURE__ */ __name(class OrderItemService2 {
           data: {
             order_id,
             product_id: price.product_id,
-            discount_price: price.base_price * price.base_discount_percentage / 100,
+            discount_price: price.base_price * (price.base_discount_percentage || 0) / 100,
             label_price: price.base_price,
-            sell_price: price.base_price - price.base_price * (1 - price.base_discount_percentage / 100),
+            sell_price: price.base_price - price.base_price * ((price.base_discount_percentage || 0) / 100),
             quantity: 1
           }
         });
@@ -561,6 +580,8 @@ var OrderItemService = /* @__PURE__ */ __name(class OrderItemService2 {
         order_items: true
       }
     });
+    if (!order)
+      return serializedError(ERROR_TYPES.COMMON_CREATION_ERROR);
     const result = await this.prisma.orderItem.create({
       include: {
         order: true,
@@ -574,9 +595,9 @@ var OrderItemService = /* @__PURE__ */ __name(class OrderItemService2 {
       data: {
         order_id: order.id,
         product_id: price.product_id,
-        discount_price: price.base_price * (1 - price.base_discount_percentage / 100),
+        discount_price: price.base_price * (1 - (price.base_discount_percentage || 0) / 100),
         label_price: price.base_price,
-        sell_price: price.base_price - price.base_price * (1 - price.base_discount_percentage / 100),
+        sell_price: price.base_price - price.base_price * ((price.base_discount_percentage || 0) / 100),
         quantity: 1
       }
     });
@@ -949,9 +970,6 @@ var ProductService = /* @__PURE__ */ __name(class ProductService2 {
     });
     return result;
   }
-  remove(id) {
-    return `This action removes a #${id} product`;
-  }
 }, "ProductService");
 ProductService = _ts_decorate11([
   (0, import_common11.Injectable)(),
@@ -1013,9 +1031,6 @@ var ProductController = /* @__PURE__ */ __name(class ProductController2 {
   updateActivation(payload) {
     return this.productService.updateProductActivation(payload);
   }
-  remove(id) {
-    return this.productService.remove(id);
-  }
 }, "ProductController");
 _ts_decorate12([
   (0, import_nest_electron3.IpcHandle)("createProduct"),
@@ -1073,14 +1088,6 @@ _ts_decorate12([
     typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
   ])
 ], ProductController.prototype, "updateActivation", null);
-_ts_decorate12([
-  (0, import_nest_electron3.IpcHandle)("removeProduct"),
-  _ts_param3(0, (0, import_microservices3.Payload)()),
-  _ts_metadata8("design:type", Function),
-  _ts_metadata8("design:paramtypes", [
-    Number
-  ])
-], ProductController.prototype, "remove", null);
 ProductController = _ts_decorate12([
   (0, import_common12.Controller)(),
   _ts_metadata8("design:type", Function),
@@ -1143,40 +1150,30 @@ var RefundService = /* @__PURE__ */ __name(class RefundService2 {
   async create(payload) {
     const { body } = payload;
     const { order_id, items, description } = body;
-    const result = await this.prisma.refund.create({
-      data: {
-        order_id,
-        description,
-        RefundItem: {
-          create: items.map((item) => ({
-            order_item_id: item.order_item,
-            order_item_quantity: item.quantity
-          }))
+    const result = await this.prisma.$transaction([
+      this.prisma.refund.create({
+        data: {
+          order_id,
+          description,
+          RefundItem: {
+            create: items.map((item) => ({
+              order_item_id: item.order_item,
+              order_item_quantity: item.quantity
+            }))
+          }
         }
-      }
-    });
-    await this.prisma.order.update({
-      where: {
-        id: order_id
-      },
-      data: {
-        is_refunded: true,
-        status: "refunded"
-      }
-    });
+      }),
+      this.prisma.order.update({
+        where: {
+          id: order_id
+        },
+        data: {
+          is_refunded: true,
+          status: "refunded"
+        }
+      })
+    ]);
     return result;
-  }
-  findAll() {
-    return `This action returns all refund`;
-  }
-  findOne(id) {
-    return `This action returns a #${id} refund`;
-  }
-  update(id) {
-    return `This action updates a #${id} refund`;
-  }
-  remove(id) {
-    return `This action removes a #${id} refund`;
   }
 }, "RefundService");
 RefundService = _ts_decorate14([
@@ -1221,19 +1218,6 @@ var RefundController = /* @__PURE__ */ __name(class RefundController2 {
   create(payload) {
     return this.refundService.create(payload);
   }
-  findAll() {
-    return this.refundService.findAll();
-  }
-  findOne(id) {
-    return this.refundService.findOne(id);
-  }
-  // @IpcHandle("updateRefund")
-  // update(@Payload() updateRefundDto: unknown) {
-  //   return this.refundService.update(updateRefundDto.id, updateRefundDto);
-  // }
-  remove(id) {
-    return this.refundService.remove(id);
-  }
 }, "RefundController");
 _ts_decorate15([
   (0, import_nest_electron4.IpcHandle)("createRefund"),
@@ -1243,27 +1227,6 @@ _ts_decorate15([
     typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
   ])
 ], RefundController.prototype, "create", null);
-_ts_decorate15([
-  (0, import_nest_electron4.IpcHandle)("findAllRefund"),
-  _ts_metadata10("design:type", Function),
-  _ts_metadata10("design:paramtypes", [])
-], RefundController.prototype, "findAll", null);
-_ts_decorate15([
-  (0, import_nest_electron4.IpcHandle)("findOneRefund"),
-  _ts_param4(0, (0, import_microservices4.Payload)()),
-  _ts_metadata10("design:type", Function),
-  _ts_metadata10("design:paramtypes", [
-    Number
-  ])
-], RefundController.prototype, "findOne", null);
-_ts_decorate15([
-  (0, import_nest_electron4.IpcHandle)("removeRefund"),
-  _ts_param4(0, (0, import_microservices4.Payload)()),
-  _ts_metadata10("design:type", Function),
-  _ts_metadata10("design:paramtypes", [
-    Number
-  ])
-], RefundController.prototype, "remove", null);
 RefundController = _ts_decorate15([
   (0, import_common15.Controller)(),
   _ts_metadata10("design:type", Function),
@@ -1297,7 +1260,12 @@ RefundModule = _ts_decorate16([
   })
 ], RefundModule);
 
-// src/backend/app.module.ts
+// src/backend/payment/payment.module.ts
+var import_common21 = require("@nestjs/common");
+
+// src/backend/api/api.service.ts
+var import_axios = require("@nestjs/axios");
+var import_common17 = require("@nestjs/common");
 function _ts_decorate17(decorators, target, key, desc) {
   var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
   if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
@@ -1309,14 +1277,437 @@ function _ts_decorate17(decorators, target, key, desc) {
   return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
 __name(_ts_decorate17, "_ts_decorate");
+function _ts_metadata11(k, v) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function")
+    return Reflect.metadata(k, v);
+}
+__name(_ts_metadata11, "_ts_metadata");
+var ApiService = /* @__PURE__ */ __name(class ApiService2 {
+  constructor(http) {
+    __publicField(this, "http");
+    this.http = http;
+  }
+  async postPos(payload) {
+    const { body } = payload;
+    console.log(body);
+    return {};
+  }
+}, "ApiService");
+ApiService = _ts_decorate17([
+  (0, import_common17.Injectable)(),
+  _ts_metadata11("design:type", Function),
+  _ts_metadata11("design:paramtypes", [
+    typeof import_axios.HttpService === "undefined" ? Object : import_axios.HttpService
+  ])
+], ApiService);
+
+// src/backend/pos/pos.service.ts
+var import_common18 = require("@nestjs/common");
+function _ts_decorate18(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate18, "_ts_decorate");
+function _ts_metadata12(k, v) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function")
+    return Reflect.metadata(k, v);
+}
+__name(_ts_metadata12, "_ts_metadata");
+var PosService = /* @__PURE__ */ __name(class PosService2 {
+  constructor(prisma, api) {
+    __publicField(this, "prisma");
+    __publicField(this, "api");
+    this.prisma = prisma;
+    this.api = api;
+  }
+  async createPosTransaction(payload) {
+    const { Amount, PayerId, PcID, PosId, ServiceCode } = payload;
+    const pos = await this.prisma.pos.findUnique({
+      where: {
+        id: PosId
+      }
+    });
+    if (!pos)
+      return null;
+    const posRequest = await this.api.postPos({
+      body: {
+        Url: `http://${pos.ip}:${pos.port}/bpmpospc/service`,
+        Amount,
+        PayerId,
+        PcID,
+        PosId,
+        ServiceCode
+      }
+    });
+    if (!posRequest)
+      return null;
+    const result = await this.prisma.posTransaction.create({
+      data: {
+        amount: Amount,
+        pos_id: PosId,
+        pan: "125125",
+        terminal_number: "125125",
+        status_code: 100
+      }
+    });
+    return result;
+  }
+  async findAllPos() {
+    const result = await this.prisma.pos.findMany();
+    return result;
+  }
+}, "PosService");
+PosService = _ts_decorate18([
+  (0, import_common18.Injectable)(),
+  _ts_metadata12("design:type", Function),
+  _ts_metadata12("design:paramtypes", [
+    typeof PrismaService === "undefined" ? Object : PrismaService,
+    typeof ApiService === "undefined" ? Object : ApiService
+  ])
+], PosService);
+
+// src/backend/utils/persianConvert.ts
+var PersianConvert = class {
+};
+__name(PersianConvert, "PersianConvert");
+__publicField(PersianConvert, "convertPersian2English", /* @__PURE__ */ __name((string) => {
+  if (!string)
+    return null;
+  if (string.length === 0)
+    return "";
+  return string.replace(/[\u0660-\u0669\u06f0-\u06f9]/g, (c) => {
+    return (c.charCodeAt(0) & 15).toString();
+  });
+}, "convertPersian2English"));
+
+// src/backend/payment/payment.service.ts
+var import_common19 = require("@nestjs/common");
+function _ts_decorate19(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate19, "_ts_decorate");
+function _ts_metadata13(k, v) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function")
+    return Reflect.metadata(k, v);
+}
+__name(_ts_metadata13, "_ts_metadata");
+var PaymentService = /* @__PURE__ */ __name(class PaymentService2 {
+  constructor(prisma, pos) {
+    __publicField(this, "prisma");
+    __publicField(this, "pos");
+    this.prisma = prisma;
+    this.pos = pos;
+  }
+  async create(payload) {
+    const { body } = payload;
+    const { order_id, cash_amount, user_phone, pos_id } = body;
+    const order = await this.prisma.order.findUnique({
+      where: {
+        id: order_id
+      },
+      include: {
+        order_items: true
+      }
+    });
+    if (!order)
+      return serializedError(ERROR_TYPES.ORDER_NOT_FOUND);
+    const order_total = order?.order_items.map((item) => item.sell_price * item.quantity).reduce((prev, curr) => prev + curr, 0);
+    const pos_amount = order_total - (cash_amount || 0);
+    if (pos_amount > 1 && pos_amount < 1e4)
+      return serializedError(ERROR_TYPES.LESS_THAN_MIN);
+    if (pos_amount > 1e4) {
+      const posResponse = await this.pos.createPosTransaction({
+        ServiceCode: "1",
+        Amount: pos_amount,
+        PayerId: "108",
+        PcID: "1234",
+        PosId: pos_id
+      });
+      if (!posResponse)
+        return serializedError(ERROR_TYPES.NO_POS_RESPONSE);
+      if (posResponse.status_code === 100)
+        await this.prisma.order.update({
+          where: {
+            id: order_id
+          },
+          data: {
+            user_phone: PersianConvert.convertPersian2English(user_phone),
+            status: "completed"
+          }
+        });
+      const result2 = await this.prisma.payment.create({
+        data: {
+          amount: order_total,
+          order_id,
+          pos_transaction_id: posResponse.id,
+          is_resolved: posResponse.status_code === 100
+        },
+        include: {
+          pos_transaction: true
+        }
+      });
+      return result2;
+    }
+    await this.prisma.order.update({
+      where: {
+        id: order_id
+      },
+      data: {
+        user_phone: PersianConvert.convertPersian2English(user_phone),
+        status: "completed"
+      }
+    });
+    const result = await this.prisma.payment.create({
+      data: {
+        amount: order_total,
+        order_id,
+        is_resolved: true
+      }
+    });
+    return result;
+  }
+}, "PaymentService");
+PaymentService = _ts_decorate19([
+  (0, import_common19.Injectable)(),
+  _ts_metadata13("design:type", Function),
+  _ts_metadata13("design:paramtypes", [
+    typeof PrismaService === "undefined" ? Object : PrismaService,
+    typeof PosService === "undefined" ? Object : PosService
+  ])
+], PaymentService);
+
+// src/backend/payment/payment.controller.ts
+var import_common20 = require("@nestjs/common");
+var import_microservices5 = require("@nestjs/microservices");
+var import_nest_electron5 = require("@doubleshot/nest-electron");
+function _ts_decorate20(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate20, "_ts_decorate");
+function _ts_metadata14(k, v) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function")
+    return Reflect.metadata(k, v);
+}
+__name(_ts_metadata14, "_ts_metadata");
+function _ts_param5(paramIndex, decorator) {
+  return function(target, key) {
+    decorator(target, key, paramIndex);
+  };
+}
+__name(_ts_param5, "_ts_param");
+var PaymentController = /* @__PURE__ */ __name(class PaymentController2 {
+  constructor(paymentService) {
+    __publicField(this, "paymentService");
+    this.paymentService = paymentService;
+  }
+  create(payload) {
+    return this.paymentService.create(payload);
+  }
+}, "PaymentController");
+_ts_decorate20([
+  (0, import_nest_electron5.IpcHandle)("createPayment"),
+  _ts_param5(0, (0, import_microservices5.Payload)()),
+  _ts_metadata14("design:type", Function),
+  _ts_metadata14("design:paramtypes", [
+    typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
+  ])
+], PaymentController.prototype, "create", null);
+PaymentController = _ts_decorate20([
+  (0, import_common20.Controller)(),
+  _ts_metadata14("design:type", Function),
+  _ts_metadata14("design:paramtypes", [
+    typeof PaymentService === "undefined" ? Object : PaymentService
+  ])
+], PaymentController);
+
+// src/backend/payment/payment.module.ts
+function _ts_decorate21(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate21, "_ts_decorate");
+var PaymentModule = /* @__PURE__ */ __name(class PaymentModule2 {
+}, "PaymentModule");
+PaymentModule = _ts_decorate21([
+  (0, import_common21.Module)({
+    controllers: [
+      PaymentController
+    ],
+    providers: [
+      PaymentService
+    ]
+  })
+], PaymentModule);
+
+// src/backend/api/api.module.ts
+var import_common22 = require("@nestjs/common");
+var import_axios2 = require("@nestjs/axios");
+function _ts_decorate22(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate22, "_ts_decorate");
+var ApiModule = /* @__PURE__ */ __name(class ApiModule2 {
+}, "ApiModule");
+ApiModule = _ts_decorate22([
+  (0, import_common22.Global)(),
+  (0, import_common22.Module)({
+    imports: [
+      import_axios2.HttpModule
+    ],
+    providers: [
+      ApiService
+    ],
+    exports: [
+      ApiService
+    ]
+  })
+], ApiModule);
+
+// src/backend/pos/pos.module.ts
+var import_common24 = require("@nestjs/common");
+
+// src/backend/pos/pos.controller.ts
+var import_common23 = require("@nestjs/common");
+var import_nest_electron6 = require("@doubleshot/nest-electron");
+var import_microservices6 = require("@nestjs/microservices");
+function _ts_decorate23(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate23, "_ts_decorate");
+function _ts_metadata15(k, v) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function")
+    return Reflect.metadata(k, v);
+}
+__name(_ts_metadata15, "_ts_metadata");
+function _ts_param6(paramIndex, decorator) {
+  return function(target, key) {
+    decorator(target, key, paramIndex);
+  };
+}
+__name(_ts_param6, "_ts_param");
+var PosController = /* @__PURE__ */ __name(class PosController2 {
+  constructor(posService) {
+    __publicField(this, "posService");
+    this.posService = posService;
+  }
+  findAll() {
+    return this.posService.findAllPos();
+  }
+  createPosTransaction(payload) {
+    return this.posService.createPosTransaction(payload);
+  }
+}, "PosController");
+_ts_decorate23([
+  (0, import_nest_electron6.IpcHandle)("findAllPos"),
+  _ts_metadata15("design:type", Function),
+  _ts_metadata15("design:paramtypes", [])
+], PosController.prototype, "findAll", null);
+_ts_decorate23([
+  (0, import_nest_electron6.IpcHandle)("createPosTransaction"),
+  _ts_param6(0, (0, import_microservices6.Payload)()),
+  _ts_metadata15("design:type", Function),
+  _ts_metadata15("design:paramtypes", [
+    typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
+  ])
+], PosController.prototype, "createPosTransaction", null);
+PosController = _ts_decorate23([
+  (0, import_common23.Controller)(),
+  _ts_metadata15("design:type", Function),
+  _ts_metadata15("design:paramtypes", [
+    typeof PosService === "undefined" ? Object : PosService
+  ])
+], PosController);
+
+// src/backend/pos/pos.module.ts
+function _ts_decorate24(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate24, "_ts_decorate");
+var PosModule = /* @__PURE__ */ __name(class PosModule2 {
+}, "PosModule");
+PosModule = _ts_decorate24([
+  (0, import_common24.Global)(),
+  (0, import_common24.Module)({
+    providers: [
+      PosService
+    ],
+    controllers: [
+      PosController
+    ],
+    exports: [
+      PosService
+    ]
+  })
+], PosModule);
+
+// src/backend/app.module.ts
+function _ts_decorate25(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate25, "_ts_decorate");
 var AppModule = /* @__PURE__ */ __name(class AppModule2 {
 }, "AppModule");
-AppModule = _ts_decorate17([
-  (0, import_common17.Module)({
+AppModule = _ts_decorate25([
+  (0, import_common25.Module)({
     imports: [
       PrismaModule,
+      ApiModule,
       import_config.ConfigModule.forRoot(),
-      import_nest_electron5.ElectronModule.registerAsync({
+      import_nest_electron7.ElectronModule.registerAsync({
         useFactory: async () => {
           const isDev = !import_electron.app.isPackaged;
           const win = new import_electron.BrowserWindow({
@@ -1331,7 +1722,7 @@ AppModule = _ts_decorate17([
           win.on("closed", () => {
             win.destroy();
           });
-          const URL = isDev ? process.env.DS_RENDERER_URL : `file://${(0, import_path.join)(import_electron.app.getAppPath(), "dist/frontend/index.html")}`;
+          const URL = isDev ? "http://[::1]:5173" : `file://${(0, import_path.join)(import_electron.app.getAppPath(), "dist/frontend/index.html")}`;
           win.loadURL(URL);
           return {
             win
@@ -1341,7 +1732,9 @@ AppModule = _ts_decorate17([
       OrderModule,
       OrderItemModule,
       ProductModule,
-      RefundModule
+      RefundModule,
+      PaymentModule,
+      PosModule
     ],
     controllers: [
       AppController
@@ -1380,7 +1773,7 @@ async function bootstrap() {
   try {
     await electronAppInit();
     const nestApp = await import_core.NestFactory.createMicroservice(AppModule, {
-      strategy: new import_nest_electron6.ElectronIpcTransport("IpcTransport")
+      strategy: new import_nest_electron8.ElectronIpcTransport("IpcTransport")
     });
     await nestApp.listen();
   } catch (error) {

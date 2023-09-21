@@ -2,9 +2,11 @@ import { getProduct, postOrder } from "@frontend/api";
 import { Close, Plus } from "@frontend/assets/svg";
 import { Button, Input } from "@frontend/components";
 import { SelectPriceModal } from "@frontend/shared";
+import { errorResponse } from "@model/general";
 import { Price, Product } from "@prisma/client";
 import { Fragment, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
+import { toast } from "react-toastify";
 
 type compositeProduct = Product & {
   price: Price[];
@@ -43,10 +45,14 @@ function AsideOrder({ order_id }: IAsideOrderProps) {
       }
       queryClient.invalidateQueries("open-orders");
     },
+    onError: (err: errorResponse) => {
+      toast(err.reason, {
+        type: "error",
+      });
+    },
   });
 
   const handleCreateOrderItem = (price: Price[], id: number) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (price && price.length === 1) {
       createOrderItem.mutate({
         body: {

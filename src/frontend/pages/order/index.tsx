@@ -8,6 +8,17 @@ import { deleteOrder, getOrder } from "@frontend/api";
 import Skeleton from "react-loading-skeleton";
 import clsx from "clsx";
 import { ORDER_TYPES } from "@model/general";
+import { Order, OrderItem, Product } from "@prisma/client";
+
+type compositeOrderItem = OrderItem & {
+  sub_total: number;
+  discount_total: number;
+  product: Product;
+};
+
+type compositeOrder = Order & {
+  order_items: compositeOrderItem[];
+};
 
 function OrderPage() {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -26,7 +37,7 @@ function OrderPage() {
           status: ORDER_TYPES["temp"],
         },
       }),
-    onSuccess: (res: Array<Record<string, number | string>>) => {
+    onSuccess: (res: compositeOrder[]) => {
       setCount(res.length);
       if (res.length === 0) {
         setOrder_id(null);
@@ -88,7 +99,7 @@ function OrderPage() {
             Number(data?.length) > 0 && "shadow-card"
           )}
         >
-          {data?.map((item: Record<string, number | string>) => (
+          {data?.map((item) => (
             <Tab
               key={item.id}
               onClick={() => setOrder_id(item.id as number)}
@@ -127,14 +138,13 @@ function OrderPage() {
           {!order_id && <CreateOrder />}
           {order_id && (
             <Fragment>
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {data?.map((item: Record<string, any>) => (
+              {data?.map((item) => (
                 <Tab.Panel
                   key={item.id}
                   as={SingleOrder}
                   order_id={item.id}
                   order_items={item.order_items}
-                  created_date={item.created_date}
+                  created_date={item.created_date as unknown as string}
                 />
               ))}
             </Fragment>

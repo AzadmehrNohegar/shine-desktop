@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider     = "sqlite"
-  url          = "file:\\db\\shine-desktop.db"
+  url          = "file:/Users/Shared/db/shine-desktop.db"
   relationMode = "foreignKeys"
 }
 
@@ -43,12 +43,13 @@ model Price {
 
 model Order {
   id           Int         @id @default(autoincrement())
-  phone_number String?
   created_date DateTime    @default(now())
   status       String      @default("temp")
   order_items  OrderItem[]
-  Refund       Refund?
+  user_phone   String?
   is_refunded  Boolean     @default(false)
+  Refund       Refund?
+  Payment      Payment[]
 }
 
 model OrderItem {
@@ -84,4 +85,41 @@ model RefundItem {
   order_item          OrderItem @relation(fields: [order_item_id], references: [id], onDelete: Cascade)
   order_item_id       Int       @unique
   order_item_quantity Int
+}
+
+model Pos {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  ip             String           @unique
+  port           String
+  psp            String           @default("BPM")
+  PosTransaction PosTransaction[]
+}
+
+model PosTransaction {
+  id              Int       @id @default(autoincrement())
+  pos             Pos?      @relation(fields: [pos_id], references: [id], onDelete: SetNull)
+  pos_id          Int?
+  amount          Int
+  ref_id          String?
+  pan             String?
+  terminal_number String?
+  created_date    DateTime  @default(now())
+  updated_date    DateTime  @updatedAt
+  status          Boolean   @default(false)
+  status_code     Int       @default(0)
+  Payment         Payment[]
+}
+
+model Payment {
+  id                 Int             @id @default(autoincrement())
+  amount             Int
+  wallet_transaction Int             @default(0)
+  pos_transaction    PosTransaction? @relation(fields: [pos_transaction_id], references: [id], onDelete: SetNull)
+  pos_transaction_id Int?
+  order              Order?          @relation(fields: [order_id], references: [id], onDelete: SetNull)
+  order_id           Int?
+  created_date       DateTime        @default(now())
+  updated_date       DateTime        @updatedAt
+  is_resolved        Boolean         @default(false)
 }

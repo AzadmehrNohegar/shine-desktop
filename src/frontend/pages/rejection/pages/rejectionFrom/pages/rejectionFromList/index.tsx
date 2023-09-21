@@ -1,6 +1,6 @@
 import { getOrderPagination } from "@frontend/api";
 import { Input } from "@frontend/components";
-import { Fragment, useDeferredValue, useState } from "react";
+import { Fragment, useState } from "react";
 import { useQuery } from "react-query";
 import { SingleRejectionRow } from "./partials";
 import Skeleton from "react-loading-skeleton";
@@ -9,18 +9,17 @@ import { ORDER_TYPES } from "@model/general";
 
 function RejectionFromListPage() {
   const [search, setSearch] = useState("");
-  const deferredSearch = useDeferredValue(search);
 
   const [page, setPage] = useState(1);
 
   const { data, isLoading, isError } = useQuery(
-    ["completed-orders", page, deferredSearch],
+    ["completed-orders", page, search],
     () =>
       getOrderPagination({
         params: {
           page,
           page_size: 10,
-          id: search,
+          id: Number(search) || null,
           status: ORDER_TYPES["completed"],
         },
       }),
@@ -34,7 +33,7 @@ function RejectionFromListPage() {
 
   return (
     <div className="w-full my-4 p-4  h-full shadow-card">
-      <div className="w-1/3 mb-4 flex items-center gap-x-2">
+      <div className="mb-4 flex items-center gap-x-2">
         <label htmlFor="phone" className="inline-block min-w-max">
           جست‌وجو شماره سفارش:
         </label>
@@ -42,6 +41,8 @@ function RejectionFromListPage() {
           id="phone"
           placeholder="شماره سفارش..."
           value={search}
+          containerClassName="w-96"
+          className="w-full"
           onChange={(e) => {
             if (page > 1) setPage(1);
             setSearch(e.target.value);

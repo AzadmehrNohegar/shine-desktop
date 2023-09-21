@@ -32,7 +32,7 @@ function HistorySingle() {
 
   const handlePrint = () =>
     postReceipt.mutate({
-      id: order_id?.toString(),
+      id: Number(order_id),
     });
 
   if (isLoading || isError)
@@ -49,14 +49,14 @@ function HistorySingle() {
             <span>سفارش شماره {order_id}</span>
           </h1>
           <span className="inline-block p-4">
-            {/* {new Intl.DateTimeFormat("fa-IR", {
+            {new Intl.DateTimeFormat("fa-IR", {
               weekday: "long",
             }).format(new Date(data?.created_date as string))}{" "}
             -{" "}
             {new Intl.DateTimeFormat("fa-IR", {
               dateStyle: "short",
               timeStyle: "short",
-            }).format(new Date(data?.created_date as string))} */}
+            }).format(new Date(data?.created_date as string))}
           </span>
         </div>
 

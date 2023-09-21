@@ -1,12 +1,15 @@
-import { getPaymentPos, postPayment } from "@frontend/api";
-import { useMutation, useQuery } from "react-query";
+import { getPos, postPayment } from "@frontend/api";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { toast } from "react-toastify";
-import { Button, Dialog, Input, SpinnerElement } from "@frontend/components";
+import { Button, Dialog, SpinnerElement } from "@frontend/components";
 import { Dialog as HeadlessDialog } from "@headlessui/react";
 import { Close } from "@frontend/assets/svg";
 import { Fragment, useState } from "react";
 import clsx from "clsx";
 import { POS_DICTIONARY } from "@frontend/constants";
+import { Payment, Pos } from "@prisma/client";
+import { NumericFormat } from "react-number-format";
+import { errorResponse } from "@model/general";
 
 interface IPaymentActionProps {
   order_id: number;
@@ -26,9 +29,11 @@ function PaymentAction({
   const [cash_amount, setCash_amount] = useState("");
   const [pos_id, setPos_id] = useState<number | null>(null);
 
-  const { data } = useQuery("pos_data", getPaymentPos, {
-    onSuccess: (res) => {
-      if (res?.results.length > 0) setPos_id(res.results[0].id);
+  const queryClient = useQueryClient();
+
+  const { data } = useQuery("pos_data", getPos, {
+    onSuccess: (res: Pos[]) => {
+      if (res?.length > 0) setPos_id(res[0].id);
     },
   });
 
@@ -38,7 +43,7 @@ function PaymentAction({
     createPayment.mutate({
       body: {
         order_id,
-        cash_amount: cash_amount || 0,
+        cash_amount: Number(cash_amount) || 0,
         user_phone: user_phone || null,
         pos_id: pos_id,
       },
@@ -57,7 +62,8 @@ function PaymentAction({
 
   const createPayment = useMutation(postPayment, {
     onSuccess: (res) => {
-      if (res?.status === 100) {
+      const { is_resolved } = res as Payment;
+      if (is_resolved) {
         toast("پرداخت موفق", {
           type: "success",
         });
@@ -66,6 +72,13 @@ function PaymentAction({
           type: "error",
         });
       }
+      closeModal();
+      queryClient.invalidateQueries();
+    },
+    onError: (err: errorResponse) => {
+      toast(err.reason, {
+        type: "error",
+      });
     },
   });
 
@@ -89,12 +102,14 @@ function PaymentAction({
           <div className="flex items-center gap-x-2 justify-between">
             <div className="flex flex-col gap-y-2">
               <label htmlFor="cash_amount">مبلغ نقدی</label>
-              <Input
-                id="cash_amount"
+              <NumericFormat
+                name="labelPriceEditable"
+                className="text-start w-full rounded-lg border border-G10 p-3 outline-none"
                 placeholder="مبلغ نقدی..."
                 value={cash_amount}
                 max={total_price}
-                onChange={(e) => setCash_amount(e.target.value)}
+                onValueChange={({ value }) => setCash_amount(value)}
+                thousandSeparator
               />
             </div>
             <div className="flex flex-col gap-y-2">
@@ -111,7 +126,7 @@ function PaymentAction({
           <div className="flex justify-between items-center my-4">
             <span>انتخاب کارتخوان:</span>
             <div className="flex items-center gap-x-2">
-              {data?.results.map((item: Record<string, string | number>) => (
+              {data?.map((item) => (
                 <Button
                   type="button"
                   variant="unstyled"

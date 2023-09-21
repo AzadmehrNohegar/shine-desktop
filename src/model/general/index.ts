@@ -6,7 +6,7 @@ export interface IPCRendererRequestConfig {
   id?: number;
   slug?: string;
   body?: Record<string, unknown>;
-  params?: Record<string, string | number>;
+  params?: Record<string, string | number | null>;
 }
 
 export type apiPaginationResponse = {
@@ -14,11 +14,24 @@ export type apiPaginationResponse = {
   results: unknown[];
 };
 
+export type errorResponse = {
+  reason: string;
+};
+
 export type rejectionOrderItem = {
   order_item: number;
   quantity: number;
   max_quantity: number;
   name: string;
+};
+
+export type posBody = {
+  ServiceCode: string;
+  Amount: number;
+  PayerId: string;
+  PcID: string;
+  PosId: number;
+  Url?: string;
 };
 
 export type orderTypes = "temp" | "completed" | "refunded";

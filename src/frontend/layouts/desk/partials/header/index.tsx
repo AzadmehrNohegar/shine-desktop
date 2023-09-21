@@ -1,19 +1,13 @@
 import { ArrowRemittance } from "@frontend/assets/svg/ArrowRemittance";
 import { Dropdown } from "@frontend/components";
+import { useClock } from "@frontend/utils";
 import clsx from "clsx";
-import {
-  House2,
-  Profile,
-  Receipt2,
-  Send2,
-  Shop,
-  Tag2,
-  Truck,
-} from "iconsax-react";
+import { House2, Profile, Receipt2, Send2, Shop, Tag2 } from "iconsax-react";
 import { Fragment } from "react";
 import { NavLink } from "react-router-dom";
 
 function Header() {
+  const { hours, minutes } = useClock();
   return (
     <header className="px-6 py-2 flex shadow-bottom w-full gap-x-2 z-20 sticky top-0 text-sm">
       <NavLink
@@ -43,7 +37,7 @@ function Header() {
         <Receipt2 size={20} />
         سفارشات
       </NavLink>
-      <Dropdown
+      {/* <Dropdown
         dropdownBtn={
           <span className="flex px-6 py-2 text-G2 items-center gap-2 border border-G10 rounded-lg">
             <Truck size={20} />
@@ -76,7 +70,7 @@ function Header() {
         >
           لیست حوالات
         </NavLink>
-      </Dropdown>
+      </Dropdown> */}
       <Dropdown
         dropdownBtn={
           <span className="flex px-6 py-2 text-G2 items-center gap-2 border border-G10 rounded-lg">
@@ -162,6 +156,21 @@ function Header() {
         <Tag2 size={20} />
         قیمت
       </NavLink>
+
+      <div className="flex items-center my-auto ms-auto gap-x-4">
+        <span>اپراتور: {"مهندس"}</span>
+        <span>شماره صندوق: {1}</span>
+        <span>
+          {new Intl.DateTimeFormat("fa-IR", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          }).format(new Date())}
+        </span>
+        <span>
+          {hours}:{minutes}
+        </span>
+      </div>
     </header>
   );
 }

@@ -248,7 +248,7 @@ export class ProductService {
     return result;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
-  }
+  // remove(id: number) {
+  //   return `This action removes a #${id} product`;
+  // }
 }

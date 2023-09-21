@@ -25,10 +25,8 @@ function SingleRejectionFromRow({
   orderItemData,
   handleDecrementOrderItemQuantity,
   handleIncrementOrderItemQuantity,
-  ...rest
 }: ISingleRejectionFromRow) {
   const { internal_code, name } = product;
-  console.log(rest, "rest");
 
   return (
     <tr>

@@ -7,6 +7,8 @@ import { Fragment, useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "react-query";
 import useScanDetection from "use-scan-detection";
 import { SelectPriceModal } from "..";
+import { errorResponse } from "@model/general";
+import { toast } from "react-toastify";
 
 type compositeProduct = Product & {
   price: Price[];
@@ -26,6 +28,11 @@ function ScanDetection({ order_id }: IScanDetectionProps) {
   const createOrderItem = useMutation(postOrder, {
     onSuccess: () => {
       queryClient.invalidateQueries("open-orders");
+    },
+    onError: (err: errorResponse) => {
+      toast(err.reason, {
+        type: "error",
+      });
     },
   });
 
@@ -56,7 +63,8 @@ function ScanDetection({ order_id }: IScanDetectionProps) {
     });
 
   useEffect(() => {
-    if (debouncedValue !== "") handleCreateOrderItem(debouncedValue);
+    if (debouncedValue !== "" && debouncedValue.length > 8)
+      handleCreateOrderItem(debouncedValue);
   }, [debouncedValue]);
 
   useScanDetection({

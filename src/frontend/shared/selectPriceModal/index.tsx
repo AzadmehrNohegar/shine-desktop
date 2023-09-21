@@ -2,8 +2,11 @@ import { getProductById, postOrder } from "@frontend/api";
 import { Close } from "@frontend/assets/svg";
 import { Button, Dialog } from "@frontend/components";
 import { Dialog as HeadlessDialog } from "@headlessui/react";
+import { errorResponse } from "@model/general";
 import { Price, Product } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "react-query";
+import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 interface ISelectPriceModalProps {
   order_id: number | null;
@@ -33,6 +36,11 @@ function SelectPriceModal({
     onSuccess: () => {
       queryClient.invalidateQueries("open-orders").then(() => {
         closeModal();
+      });
+    },
+    onError: (err: errorResponse) => {
+      toast(err.reason, {
+        type: "error",
       });
     },
   });
@@ -67,16 +75,27 @@ function SelectPriceModal({
           {(data as compositeProduct)?.price.map((item) => (
             <li key={item.id} className="py-2 font-bold text-xl basis-modified">
               <Button
-                className="w-full text-start flex items-center justify-between min-h-[100px]"
+                className="w-full text-start flex items-center justify-between min-h-[120px]"
                 variant="outline"
                 onClick={() => handleCreateOrderItem(item.id)}
               >
                 <span>قیمت محصول:</span>
-                <strong>{item.base_price.toLocaleString()} تومان</strong>
+                <strong>{item.base_price.toLocaleString()} ریال</strong>
               </Button>
             </li>
           ))}
         </ul>
+        {(data as compositeProduct)?.price.length === 0 && (
+          <div className="mx-auto mb-10 flex flex-col gap-y-4 items-center justify-center p-4">
+            <span>قیمتی برای این محصول وجود ندارد.</span>
+            <Link
+              to={`/product/${product_id}`}
+              className="px-10 py-2 bg-primary rounded-lg text-white"
+            >
+              اضافه کردن قیمت جدید
+            </Link>
+          </div>
+        )}
       </HeadlessDialog.Panel>
     </Dialog>
   );

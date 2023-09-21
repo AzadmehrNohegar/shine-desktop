@@ -17,43 +17,46 @@ export class RefundService {
       }[];
     };
 
-    const result = await this.prisma.refund.create({
-      data: {
-        order_id,
-        description,
-        RefundItem: {
-          create: items.map((item) => ({
-            order_item_id: item.order_item,
-            order_item_quantity: item.quantity,
-          })),
+    const result = await this.prisma.$transaction([
+      this.prisma.refund.create({
+        data: {
+          order_id,
+          description,
+          RefundItem: {
+            create: items.map((item) => ({
+              order_item_id: item.order_item,
+              order_item_quantity: item.quantity,
+            })),
+          },
         },
-      },
-    });
-    await this.prisma.order.update({
-      where: {
-        id: order_id,
-      },
-      data: {
-        is_refunded: true,
-        status: "refunded",
-      },
-    });
+      }),
+      this.prisma.order.update({
+        where: {
+          id: order_id,
+        },
+        data: {
+          is_refunded: true,
+          status: "refunded",
+        },
+      }),
+    ]);
+
     return result;
   }
 
-  findAll() {
-    return `This action returns all refund`;
-  }
+  // findAll() {
+  //   return `This action returns all refund`;
+  // }
 
-  findOne(id: number) {
-    return `This action returns a #${id} refund`;
-  }
+  // findOne(id: number) {
+  //   return `This action returns a #${id} refund`;
+  // }
 
-  update(id: number) {
-    return `This action updates a #${id} refund`;
-  }
+  // update(id: number) {
+  //   return `This action updates a #${id} refund`;
+  // }
 
-  remove(id: number) {
-    return `This action removes a #${id} refund`;
-  }
+  // remove(id: number) {
+  //   return `This action removes a #${id} refund`;
+  // }
 }

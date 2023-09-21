@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { apiPaginationResponse } from "@model/general";
+import { apiPaginationResponse, errorResponse } from "@model/general";
 import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("electron", {
-  onRequest: (
+  onRequest: async (
     endpoint: string,
     body: Record<string, unknown> | null,
     params?: any,
@@ -12,14 +12,19 @@ contextBridge.exposeInMainWorld("electron", {
     | Record<string, unknown>
     | apiPaginationResponse
     | Array<Record<string, number | string>>
-  > =>
-    ipcRenderer.invoke(endpoint, {
+    | errorResponse
+  > => {
+    const response = await ipcRenderer.invoke(endpoint, {
       body,
       params,
       id,
-    }),
-  onResponse: (cb: (msg: string) => unknown) =>
-    ipcRenderer.on("reply-msg", (e, msg: string) => {
+    });
+    if (response.reason) throw response;
+    return response;
+  },
+  onResponse: (cb: (msg: string) => unknown) => {
+    return ipcRenderer.on("reply-msg", (e, msg: string) => {
       cb(msg);
-    }),
+    });
+  },
 });

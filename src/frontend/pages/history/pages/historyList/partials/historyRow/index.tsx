@@ -30,7 +30,7 @@ function SingleHistoryRow({
 
   const handlePrint = () =>
     postReceipt.mutate({
-      id: id.toString(),
+      id,
     });
 
   return (

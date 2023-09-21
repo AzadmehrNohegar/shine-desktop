@@ -1,12 +1,7 @@
-import { AddOrderItem, ScanDetection } from "@frontend/shared";
-import { Fragment, useState } from "react";
-import { useQueryClient } from "react-query";
+import { ScanDetection } from "@frontend/shared";
+import { Fragment } from "react";
 
 function CreateOrder() {
-  const queryClient = useQueryClient();
-
-  const [isOpen, setIsOpen] = useState(false);
-
   return (
     <Fragment>
       <ScanDetection order_id={null} />
@@ -121,16 +116,6 @@ function CreateOrder() {
           جهت افزودن محصول بارکد را اسکن کنید.
         </span>
       </div>
-      {isOpen && (
-        <AddOrderItem
-          isOpen={isOpen}
-          closeModal={() => {
-            queryClient.invalidateQueries("open-orders");
-            setIsOpen(false);
-          }}
-          order_id={null}
-        />
-      )}
     </Fragment>
   );
 }

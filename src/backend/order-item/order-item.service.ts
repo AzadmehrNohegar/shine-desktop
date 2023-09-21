@@ -2,6 +2,8 @@ import { Injectable } from "@nestjs/common";
 import * as general from "src/model/general";
 import { PrismaService } from "@backend/prisma/prisma.service";
 import { OrderItem } from "@prisma/client";
+import { serializedError } from "@backend/utils/serializedError";
+import { ERROR_TYPES } from "@backend/constants/locale";
 // import { wss } from "..";
 
 @Injectable()
@@ -24,7 +26,7 @@ export class OrderItemService {
       },
     });
 
-    if (!price) return null;
+    if (!price) return serializedError(ERROR_TYPES.PRICE_NOT_FOUND);
 
     if (order_id) {
       const order_item = await this.prisma.orderItem.findFirst({
@@ -34,6 +36,7 @@ export class OrderItemService {
           label_price: price.base_price,
         },
       });
+
       if (!order_item)
         return await this.prisma.orderItem.create({
           include: {
@@ -49,14 +52,15 @@ export class OrderItemService {
             order_id,
             product_id: price.product_id,
             discount_price:
-              (price.base_price * price.base_discount_percentage) / 100,
+              (price.base_price * (price.base_discount_percentage || 0)) / 100,
             label_price: price.base_price,
             sell_price:
               price.base_price -
-              price.base_price * (1 - price.base_discount_percentage / 100),
+              price.base_price * ((price.base_discount_percentage || 0) / 100),
             quantity: 1,
           },
         });
+
       return await this.prisma.orderItem.update({
         where: {
           id: order_item.id,
@@ -76,6 +80,8 @@ export class OrderItemService {
       },
     });
 
+    if (!order) return serializedError(ERROR_TYPES.COMMON_CREATION_ERROR);
+
     const result = await this.prisma.orderItem.create({
       include: {
         order: true,
@@ -90,11 +96,11 @@ export class OrderItemService {
         order_id: order.id,
         product_id: price.product_id,
         discount_price:
-          price.base_price * (1 - price.base_discount_percentage / 100),
+          price.base_price * (1 - (price.base_discount_percentage || 0) / 100),
         label_price: price.base_price,
         sell_price:
           price.base_price -
-          price.base_price * (1 - price.base_discount_percentage / 100),
+          price.base_price * ((price.base_discount_percentage || 0) / 100),
         quantity: 1,
       },
     });
@@ -104,6 +110,7 @@ export class OrderItemService {
   async update(payload: general.IPCRendererRequestConfig) {
     const { id, body } = payload;
     const { quantity, label_price } = body as OrderItem;
+
     if (quantity === 0 || isNaN(quantity)) {
       return await this.prisma.orderItem.delete({
         where: {
@@ -111,6 +118,7 @@ export class OrderItemService {
         },
       });
     }
+
     return await this.prisma.orderItem.update({
       where: {
         id: +id!,

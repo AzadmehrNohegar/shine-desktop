@@ -1,9 +1,11 @@
-import { AxiosCustomRequestConfig, http } from "@frontend/services";
+import { http } from "@frontend/services";
+import { IPCRendererRequestConfig } from "@model/general";
 
-export const postPayment = async ({ body }: AxiosCustomRequestConfig) => {
-  const response = await http.post("/payment/create_payment/", body);
-  const data = await response.data;
-  return data;
+const { onRequest } = window.electron;
+
+export const postPayment = async ({ body }: IPCRendererRequestConfig) => {
+  const response = await onRequest("createPayment", body!);
+  return response;
 };
 
 export const getPaymentPos = async () => {

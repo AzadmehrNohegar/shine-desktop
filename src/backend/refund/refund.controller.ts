@@ -13,23 +13,23 @@ export class RefundController {
     return this.refundService.create(payload);
   }
 
-  @IpcHandle("findAllRefund")
-  findAll() {
-    return this.refundService.findAll();
-  }
+  // @IpcHandle("findAllRefund")
+  // findAll() {
+  //   return this.refundService.findAll();
+  // }
 
-  @IpcHandle("findOneRefund")
-  findOne(@Payload() id: number) {
-    return this.refundService.findOne(id);
-  }
+  // @IpcHandle("findOneRefund")
+  // findOne(@Payload() id: number) {
+  //   return this.refundService.findOne(id);
+  // }
 
   // @IpcHandle("updateRefund")
   // update(@Payload() updateRefundDto: unknown) {
   //   return this.refundService.update(updateRefundDto.id, updateRefundDto);
   // }
 
-  @IpcHandle("removeRefund")
-  remove(@Payload() id: number) {
-    return this.refundService.remove(id);
-  }
+  // @IpcHandle("removeRefund")
+  // remove(@Payload() id: number) {
+  //   return this.refundService.remove(id);
+  // }
 }

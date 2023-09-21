@@ -28,11 +28,6 @@ export class OrderController {
     return this.orderService.findOne(payload);
   }
 
-  // @IpcHandle("updateOrder")
-  // update(@Payload() updateOrderDto: UpdateOrderDto) {
-  //   return this.orderService.update(updateOrderDto.id, updateOrderDto);
-  // }
-
   @IpcHandle("removeOrder")
   remove(@Payload() { id }: general.IPCRendererRequestConfig) {
     return this.orderService.remove(id!);

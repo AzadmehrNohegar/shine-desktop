@@ -3,14 +3,20 @@ import { Button, Input } from "@frontend/components";
 import { useMutation, useQueryClient } from "react-query";
 import { deleteOrder } from "@frontend/api";
 import { Fragment, LegacyRef, forwardRef, useState } from "react";
-import { AddOrderItem, PaymentAction, ScanDetection } from "@frontend/shared";
+import { PaymentAction, ScanDetection } from "@frontend/shared";
 import { Trash } from "iconsax-react";
 import { useComputedOrderItem } from "@frontend/utils";
-import { OrderItem } from "@prisma/client";
+import { OrderItem, Product } from "@prisma/client";
+
+type compositeOrderItem = OrderItem & {
+  sub_total: number;
+  discount_total: number;
+  product: Product;
+};
 
 interface ISingleOrderProps {
   order_id: number;
-  order_items: unknown[];
+  order_items: compositeOrderItem[];
   created_date: string;
 }
 
@@ -18,14 +24,12 @@ const SingleOrder = forwardRef(
   (props: ISingleOrderProps, ref: LegacyRef<HTMLDivElement>) => {
     const { order_id, order_items } = props;
 
-    const { total_count, total_dicsount, total_price } = useComputedOrderItem(
-      order_items as OrderItem[]
-    );
+    const { total_count, total_dicsount, total_price } =
+      useComputedOrderItem(order_items);
 
     const queryClient = useQueryClient();
 
     const [actionOpen, setActionOpen] = useState(false);
-    const [isOpen, setIsOpen] = useState(false);
 
     const [user_phone, setUser_phone] = useState("");
 
@@ -94,9 +98,8 @@ const SingleOrder = forwardRef(
                 </tr>
               </thead>
               <tbody className="bg-white">
-                {order_items.map((item: unknown) => {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const { id, ...rest } = item as any;
+                {order_items.map((item) => {
+                  const { id, ...rest } = item;
                   return <SingleOrderRow key={id} id={id} {...rest} />;
                 })}
               </tbody>
@@ -134,16 +137,6 @@ const SingleOrder = forwardRef(
           </Button>
         </div>
 
-        {isOpen && (
-          <AddOrderItem
-            isOpen={isOpen}
-            closeModal={() => {
-              setIsOpen(false);
-              queryClient.invalidateQueries("open-orders");
-            }}
-            order_id={order_id}
-          />
-        )}
         {actionOpen && (
           <PaymentAction
             isOpen={actionOpen}

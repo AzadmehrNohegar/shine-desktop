@@ -1,4 +1,3 @@
-import { AxiosCustomRequestConfig, http } from "@frontend/services";
 import {
   IPCRendererRequestConfig,
   apiPaginationResponse,
@@ -26,10 +25,9 @@ export const getOrderById = async ({ id }: IPCRendererRequestConfig) => {
 
 export const postOrderByIdInvoice = async ({
   id,
-}: AxiosCustomRequestConfig) => {
-  const response = await http.post(`/order/order/${id}/invoice/`);
-  const data = await response.data;
-  return data;
+}: IPCRendererRequestConfig) => {
+  const response = await onRequest("postInvoice", null, null, id);
+  return response;
 };
 
 export const postOrder = async ({ body }: IPCRendererRequestConfig) => {

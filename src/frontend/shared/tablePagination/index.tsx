@@ -3,6 +3,7 @@ import { Button } from "@frontend/components";
 
 interface ITablePaginationProps {
   page: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setPage: any;
   count: number;
 }
@@ -14,7 +15,7 @@ function TablePagination({ page, setPage, count }: ITablePaginationProps) {
         size="touch"
         variant="ghost"
         onClick={() => setPage((prevState: number) => prevState + 1)}
-        disabled={page === Math.floor(count / 10) + 1}
+        disabled={page === Math.ceil(count / 10)}
       >
         <RightChevron />
       </Button>

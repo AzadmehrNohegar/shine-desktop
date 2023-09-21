@@ -4,8 +4,13 @@ import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { Barcode, Price, Product } from "@prisma/client";
 import { Button, Input } from "@frontend/components";
 import { Plus } from "@frontend/assets/svg";
-import { useMutation, useQuery } from "react-query";
-import { getProductById, postProduct, putProduct } from "@frontend/api";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import {
+  getProductById,
+  postProduct,
+  postProductActivation,
+  putProduct,
+} from "@frontend/api";
 import { toast } from "react-toastify";
 
 type compositeProduct = Product & {
@@ -15,6 +20,16 @@ type compositeProduct = Product & {
 
 function ProductSingle() {
   const { id } = useParams();
+  const queryClient = useQueryClient();
+
+  const toggleActivation = useMutation(postProductActivation, {
+    onSuccess: () => {
+      toast("وضعیت محصول تغییر یافت", {
+        type: "info",
+      });
+      queryClient.invalidateQueries();
+    },
+  });
 
   const { data } = useQuery(
     `product-single-${id}`,
@@ -23,6 +38,14 @@ function ProductSingle() {
       enabled: Boolean(id),
     }
   );
+
+  const handleActivationToggle = () =>
+    toggleActivation.mutate({
+      id: Number(id),
+      body: {
+        is_active: !(data as compositeProduct).is_active,
+      },
+    });
 
   const {
     control,
@@ -70,11 +93,10 @@ function ProductSingle() {
   });
 
   const modifyProduct = useMutation(putProduct, {
-    onSuccess: (res) => {
+    onSuccess: () => {
       toast("محصول با موفقیت تدوین شد.", {
         type: "info",
       });
-      console.log(res);
     },
   });
 
@@ -102,14 +124,34 @@ function ProductSingle() {
   };
 
   return (
-    <form className="px-4 w-full">
+    <div className="px-4 w-full">
       <div className="flex w-full items-center justify-between border-b mb-4">
-        <h1 className="flex items-center text-xl font-bold gap-x-2">
+        <h1 className="flex items-center text-xl font-bold gap-x-2 w-full">
           <Link to=".." className="p-4">
             <ArrowRight />
           </Link>
           {id && <span>محصول شماره {id}</span>}
           {!id && <span>افزودن محصول</span>}
+          {id && (data as compositeProduct)?.is_active && (
+            <Button
+              variant="ghost"
+              color="primary"
+              className="ms-auto"
+              onClick={handleActivationToggle}
+            >
+              فعال‌سازی محصول
+            </Button>
+          )}
+          {id && !(data as compositeProduct)?.is_active && (
+            <Button
+              variant="ghost"
+              color="danger"
+              className="ms-auto"
+              onClick={handleActivationToggle}
+            >
+              غیر فعال‌سازی محصول
+            </Button>
+          )}
         </h1>
       </div>
       <div className="flex items-stretch justify-between gap-x-4">
@@ -309,7 +351,7 @@ function ProductSingle() {
           {!id && "افزودن محصول"}
         </Button>
       </div>
-    </form>
+    </div>
   );
 }
 
