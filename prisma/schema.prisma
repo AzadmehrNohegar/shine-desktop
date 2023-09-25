@@ -48,8 +48,8 @@ model Order {
   order_items  OrderItem[]
   user_phone   String?
   is_refunded  Boolean     @default(false)
-  Refund       Refund?
-  Payment      Payment[]
+  refund       Refund?
+  payment      Payment?
 }
 
 model OrderItem {
@@ -62,7 +62,7 @@ model OrderItem {
   label_price    Int
   discount_price Int
   sell_price     Int
-  RefundItem     RefundItem?
+  refund_item    RefundItem?
 
   @@unique([id, order_id])
 }
@@ -75,7 +75,7 @@ model Refund {
   modified_date DateTime     @updatedAt
   description   String       @default("")
   status        String       @default("from")
-  RefundItem    RefundItem[]
+  refundd_item  RefundItem[]
 }
 
 model RefundItem {
@@ -88,12 +88,12 @@ model RefundItem {
 }
 
 model Pos {
-  id             Int              @id @default(autoincrement())
-  name           String           @unique
-  ip             String           @unique
-  port           String
-  psp            String           @default("BPM")
-  PosTransaction PosTransaction[]
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  ip              String           @unique
+  port            String
+  psp             String           @default("BPM")
+  pos_transaction PosTransaction[]
 }
 
 model PosTransaction {
@@ -108,7 +108,7 @@ model PosTransaction {
   updated_date    DateTime @updatedAt
   status          Boolean  @default(false)
   status_code     Int      @default(0)
-  Payment         Payment?
+  payment         Payment?
 }
 
 model Payment {
@@ -118,7 +118,7 @@ model Payment {
   pos_transaction    PosTransaction? @relation(fields: [pos_transaction_id], references: [id], onDelete: SetNull)
   pos_transaction_id Int?            @unique
   order              Order?          @relation(fields: [order_id], references: [id], onDelete: SetNull)
-  order_id           Int?
+  order_id           Int?            @unique
   created_date       DateTime        @default(now())
   updated_date       DateTime        @updatedAt
   is_resolved        Boolean         @default(false)
