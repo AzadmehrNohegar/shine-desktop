@@ -6,11 +6,21 @@
 module.exports = {
   productName: "نرم افزار فروشگاهی شاین",
   directories: {
+    buildResources: "resources",
     output: "dist/electron",
   },
-  publish: null,
+  win: {
+    target: ["nsis", "msi"],
+    icon: "resources/logo.png",
+  },
+  icon: "resources/logo.png",
   npmRebuild: false,
-  files: ["dist/backend/**/*", "dist/preload/**/*", "dist/frontend/**/*"],
+  files: [
+    "dist/backend/**/*",
+    "dist/preload/**/*",
+    "dist/frontend/**/*",
+    "resources/**/*",
+  ],
   extraResources: [
     "resources/database.db",
     "node_modules/.prisma/**/*",
