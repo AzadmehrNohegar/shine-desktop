@@ -97,18 +97,18 @@ model Pos {
 }
 
 model PosTransaction {
-  id              Int       @id @default(autoincrement())
-  pos             Pos?      @relation(fields: [pos_id], references: [id], onDelete: SetNull)
+  id              Int      @id @default(autoincrement())
+  pos             Pos?     @relation(fields: [pos_id], references: [id], onDelete: SetNull)
   pos_id          Int?
   amount          Int
   ref_id          String?
   pan             String?
   terminal_number String?
-  created_date    DateTime  @default(now())
-  updated_date    DateTime  @updatedAt
-  status          Boolean   @default(false)
-  status_code     Int       @default(0)
-  Payment         Payment[]
+  created_date    DateTime @default(now())
+  updated_date    DateTime @updatedAt
+  status          Boolean  @default(false)
+  status_code     Int      @default(0)
+  Payment         Payment?
 }
 
 model Payment {
@@ -116,7 +116,7 @@ model Payment {
   amount             Int
   wallet_transaction Int             @default(0)
   pos_transaction    PosTransaction? @relation(fields: [pos_transaction_id], references: [id], onDelete: SetNull)
-  pos_transaction_id Int?
+  pos_transaction_id Int?            @unique
   order              Order?          @relation(fields: [order_id], references: [id], onDelete: SetNull)
   order_id           Int?
   created_date       DateTime        @default(now())
