@@ -90,6 +90,7 @@ export class OrderService {
       id: number;
       status: general.orderTypes;
     };
+
     const [count, items] = await this.prisma.$transaction([
       this.prismaExtended.order.count({
         where: {

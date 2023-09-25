@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 
 function HistoryList() {
   const [search, setSearch] = useState<string>("");
-  console.log(search);
+
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useQuery(
     ["orders-list", page, search],
@@ -20,7 +20,6 @@ function HistoryList() {
         params: { page, page_size: 10, id: Number(search) || null },
       }),
     {
-      initialData: { count: 0, results: [] },
       keepPreviousData: true,
       onError: (err: unknown) => {
         const { reason } = err as errorResponse;
