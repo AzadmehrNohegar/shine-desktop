@@ -7,6 +7,8 @@ import { ProductTableRow } from "./partials";
 import { Barcode, Price, Product } from "@prisma/client";
 import { Plus } from "@frontend/assets/svg";
 import { Link } from "react-router-dom";
+import { errorResponse } from "@model/general";
+import { toast } from "react-toastify";
 
 type compositeProductBarcode = Product & {
   price: Price[];
@@ -27,6 +29,12 @@ function ProductList() {
       }),
     {
       keepPreviousData: true,
+      onError: (err: unknown) => {
+        const { reason } = err as errorResponse;
+        toast(reason, {
+          type: "error",
+        });
+      },
     }
   );
 

@@ -5,7 +5,8 @@ import { useQuery } from "react-query";
 import { SingleRejectionRow } from "./partials";
 import Skeleton from "react-loading-skeleton";
 import { TablePagination } from "@frontend/shared";
-import { ORDER_TYPES } from "@model/general";
+import { ORDER_TYPES, errorResponse } from "@model/general";
+import { toast } from "react-toastify";
 
 function RejectionFromListPage() {
   const [search, setSearch] = useState("");
@@ -25,6 +26,12 @@ function RejectionFromListPage() {
       }),
     {
       keepPreviousData: true,
+      onError: (err: unknown) => {
+        const { reason } = err as errorResponse;
+        toast(reason, {
+          type: "error",
+        });
+      },
     }
   );
 

@@ -7,6 +7,8 @@ import { PaymentAction, ScanDetection } from "@frontend/shared";
 import { Trash } from "iconsax-react";
 import { useComputedOrderItem } from "@frontend/utils";
 import { OrderItem, Product } from "@prisma/client";
+import { toast } from "react-toastify";
+import { errorResponse } from "@model/general";
 
 type compositeOrderItem = OrderItem & {
   sub_total: number;
@@ -36,6 +38,12 @@ const SingleOrder = forwardRef(
     const deleteOrderItem = useMutation(deleteOrder, {
       onSuccess: () => {
         queryClient.invalidateQueries("open-orders");
+      },
+      onError: (err: unknown) => {
+        const { reason } = err as errorResponse;
+        toast(reason, {
+          type: "error",
+        });
       },
     });
 

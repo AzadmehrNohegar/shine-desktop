@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import { Button, Input } from "@frontend/components";
 import { OrderItem, Product } from "@prisma/client";
 import { useComputedOrderItem } from "@frontend/utils";
-import { rejectionOrderItem } from "@model/general";
+import { errorResponse, rejectionOrderItem } from "@model/general";
 
 type compositeOrderItem = OrderItem & {
   product: Product;
@@ -39,6 +39,12 @@ function RejectionFromSinglePage() {
             name: item.product.name,
           }))
         ),
+      onError: (err: unknown) => {
+        const { reason } = err as errorResponse;
+        toast(reason, {
+          type: "error",
+        });
+      },
     }
   );
 
@@ -79,6 +85,12 @@ function RejectionFromSinglePage() {
       });
       queryClient.invalidateQueries("completed-orders");
       navigate("..");
+    },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
+      });
     },
   });
 

@@ -2,10 +2,16 @@ import { cloneable } from "@backend/utils/deepClone";
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@backend/prisma/prisma.service";
 import * as general from "@model/general";
+import { serializedError } from "@backend/utils/serializedError";
+import { ERROR_TYPES } from "@backend/constants/locale";
+import { PrinterService } from "@backend/printer/printer.service";
 
 @Injectable()
 export class OrderService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly printer: PrinterService
+  ) {}
 
   private prismaExtended = this.prisma.$extends({
     result: {
@@ -34,7 +40,9 @@ export class OrderService {
   });
 
   async create() {
-    const result = await this.prisma.order.create({});
+    const result = await this.prisma.order.create({
+      data: {},
+    });
     return result;
   }
 
@@ -85,7 +93,7 @@ export class OrderService {
     const [count, items] = await this.prisma.$transaction([
       this.prismaExtended.order.count({
         where: {
-          ...(id
+          ...(id && !isNaN(id)
             ? {
                 id: {
                   equals: id,
@@ -105,7 +113,7 @@ export class OrderService {
         take: page_size,
         skip: (page - 1) * page_size,
         where: {
-          ...(id
+          ...(id && !isNaN(id)
             ? {
                 id: {
                   equals: id,
@@ -163,12 +171,32 @@ export class OrderService {
     return cloneable.deepCopy(result);
   }
 
-  async remove(id: number) {
+  async remove(payload: general.IPCRendererRequestConfig) {
+    const { id } = payload;
     const result = await this.prisma.order.delete({
       where: {
         id,
       },
     });
     return result;
+  }
+
+  async invoice(payload: general.IPCRendererRequestConfig) {
+    const { id } = payload;
+    const order = await this.prismaExtended.order.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        order_items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+    if (!order) return serializedError(ERROR_TYPES.ORDER_NOT_FOUND);
+    await this.printer.printOrder(order);
+    return "success";
   }
 }

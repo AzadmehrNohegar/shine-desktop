@@ -5,12 +5,15 @@ import { PersianConvert } from "@backend/utils/persianConvert";
 import { serializedError } from "@backend/utils/serializedError";
 import { Injectable } from "@nestjs/common";
 import * as general from "src/model/general";
+import { orderTools } from "@backend/utils/orderTools";
+import { PrinterService } from "@backend/printer/printer.service";
 
 @Injectable()
 export class PaymentService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly pos: PosService
+    private readonly pos: PosService,
+    private readonly printer: PrinterService
   ) {}
 
   async create(payload: general.IPCRendererRequestConfig) {
@@ -27,15 +30,17 @@ export class PaymentService {
         id: order_id,
       },
       include: {
-        order_items: true,
+        order_items: {
+          include: {
+            product: true,
+          },
+        },
       },
     });
 
     if (!order) return serializedError(ERROR_TYPES.ORDER_NOT_FOUND);
 
-    const order_total = order?.order_items
-      .map((item) => item.sell_price * item.quantity)
-      .reduce((prev, curr) => prev + curr, 0);
+    const { order_total } = orderTools(order);
 
     const pos_amount = order_total - (cash_amount || 0);
 
@@ -46,7 +51,7 @@ export class PaymentService {
       const posResponse = await this.pos.createPosTransaction({
         ServiceCode: "1",
         Amount: pos_amount,
-        PayerId: "108",
+        PayerId: user_phone || "2",
         PcID: "1234",
         PosId: pos_id,
       });
@@ -64,37 +69,71 @@ export class PaymentService {
           },
         });
 
-      const result = await this.prisma.payment.create({
-        data: {
-          amount: order_total,
-          order_id,
-          pos_transaction_id: posResponse.id,
-          is_resolved: posResponse.status_code === 100,
-        },
-        include: {
-          pos_transaction: true,
-        },
-      });
+      const [result] = await this.prisma.$transaction([
+        this.prisma.payment.create({
+          data: {
+            amount: order_total,
+            order_id,
+            is_resolved: true,
+          },
+        }),
+        ...order.order_items.map((item) =>
+          this.prisma.price.update({
+            where: {
+              product_id_base_price: {
+                base_price: item.label_price,
+                product_id: item.product_id,
+              },
+            },
+            data: {
+              inventory: {
+                decrement: item.quantity,
+              },
+            },
+          })
+        ),
+      ]);
+
+      await this.printer.printOrder(order);
+
       return result;
     }
 
-    await this.prisma.order.update({
-      where: {
-        id: order_id,
-      },
-      data: {
-        user_phone: PersianConvert.convertPersian2English(user_phone),
-        status: "completed",
-      },
-    });
+    const [, result] = await this.prisma.$transaction([
+      this.prisma.order.update({
+        where: {
+          id: order_id,
+        },
+        data: {
+          user_phone: PersianConvert.convertPersian2English(user_phone),
+          status: "completed",
+        },
+      }),
+      this.prisma.payment.create({
+        data: {
+          amount: order_total,
+          order_id,
+          is_resolved: true,
+        },
+      }),
+      ...order.order_items.map((item) =>
+        this.prisma.price.update({
+          where: {
+            product_id_base_price: {
+              base_price: item.label_price,
+              product_id: item.product_id,
+            },
+          },
+          data: {
+            inventory: {
+              decrement: item.quantity,
+            },
+          },
+        })
+      ),
+    ]);
 
-    const result = await this.prisma.payment.create({
-      data: {
-        amount: order_total,
-        order_id,
-        is_resolved: true,
-      },
-    });
+    await this.printer.printOrder(order);
 
     return result;
   }

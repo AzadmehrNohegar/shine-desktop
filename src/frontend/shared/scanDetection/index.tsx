@@ -29,8 +29,9 @@ function ScanDetection({ order_id }: IScanDetectionProps) {
     onSuccess: () => {
       queryClient.invalidateQueries("open-orders");
     },
-    onError: (err: errorResponse) => {
-      toast(err.reason, {
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
         type: "error",
       });
     },
@@ -52,6 +53,12 @@ function ScanDetection({ order_id }: IScanDetectionProps) {
         setProductId(id);
       }
       setCodeValue("");
+    },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
+      });
     },
   });
 

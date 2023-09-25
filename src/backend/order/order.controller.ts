@@ -29,7 +29,12 @@ export class OrderController {
   }
 
   @IpcHandle("removeOrder")
-  remove(@Payload() { id }: general.IPCRendererRequestConfig) {
-    return this.orderService.remove(id!);
+  remove(@Payload() payload: general.IPCRendererRequestConfig) {
+    return this.orderService.remove(payload);
+  }
+
+  @IpcHandle("invoiceOrder")
+  invoice(@Payload() payload: general.IPCRendererRequestConfig) {
+    return this.orderService.invoice(payload);
   }
 }

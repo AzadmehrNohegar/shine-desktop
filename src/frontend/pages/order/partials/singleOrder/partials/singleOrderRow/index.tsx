@@ -1,9 +1,11 @@
 import { deleteOrderItem, putOrderItem } from "@frontend/api";
 import { Close, Minus, Plus } from "@frontend/assets/svg";
 import { Button, Input } from "@frontend/components";
+import { errorResponse } from "@model/general";
 import { useEffect, useState } from "react";
 import { NumericFormat } from "react-number-format";
 import { useMutation, useQueryClient } from "react-query";
+import { toast } from "react-toastify";
 
 type product = {
   id: number;
@@ -42,11 +44,23 @@ function SingleOrderRow({
     onSuccess: () => {
       queryClient.invalidateQueries("open-orders");
     },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
+      });
+    },
   });
 
   const removeOrderItem = useMutation(deleteOrderItem, {
     onSuccess: () => {
       queryClient.invalidateQueries("open-orders");
+    },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
+      });
     },
   });
 

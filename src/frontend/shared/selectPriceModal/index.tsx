@@ -27,8 +27,17 @@ function SelectPriceModal({
 }: ISelectPriceModalProps) {
   const queryClient = useQueryClient();
 
-  const { data } = useQuery(`product-single-${product_id}`, () =>
-    getProductById({ id: product_id })
+  const { data } = useQuery(
+    `product-single-${product_id}`,
+    () => getProductById({ id: product_id }),
+    {
+      onError: (err: unknown) => {
+        const { reason } = err as errorResponse;
+        toast(reason, {
+          type: "error",
+        });
+      },
+    }
   );
 
   const createOrderItem = useMutation(postOrder, {
@@ -38,8 +47,9 @@ function SelectPriceModal({
         closeModal();
       });
     },
-    onError: (err: errorResponse) => {
-      toast(err.reason, {
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
         type: "error",
       });
     },

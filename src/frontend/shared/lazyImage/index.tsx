@@ -10,7 +10,9 @@ function ShineLazyImage(props: IShineLazyImageProps) {
   return (
     <LazyLoadImage
       src={src || "/images/shine-logo-bw.svg"}
-      onError={(e) => ((e.target as any).src = "/images/shine-logo-bw.svg")}
+      onError={(e) =>
+        ((e.target as HTMLImageElement).src = "/images/shine-logo-bw.svg")
+      }
       alt={alt || "image"}
       {...rest}
     />

@@ -1,6 +1,7 @@
 import { postOrderByIdInvoice } from "@frontend/api";
 import { Button } from "@frontend/components";
 import { useComputedOrderItem } from "@frontend/utils";
+import { errorResponse } from "@model/general";
 import { OrderItem } from "@prisma/client";
 import { Fragment } from "react";
 import { useMutation } from "react-query";
@@ -22,6 +23,12 @@ function SingleHistoryRow({
     onSuccess: () => {
       toast("رسید برای چاپگر ارسال شد.", {
         type: "success",
+      });
+    },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
       });
     },
   });

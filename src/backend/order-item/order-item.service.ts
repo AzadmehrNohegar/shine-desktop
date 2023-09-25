@@ -4,7 +4,6 @@ import { PrismaService } from "@backend/prisma/prisma.service";
 import { OrderItem } from "@prisma/client";
 import { serializedError } from "@backend/utils/serializedError";
 import { ERROR_TYPES } from "@backend/constants/locale";
-// import { wss } from "..";
 
 @Injectable()
 export class OrderItemService {
@@ -78,6 +77,7 @@ export class OrderItemService {
         id: true,
         order_items: true,
       },
+      data: {},
     });
 
     if (!order) return serializedError(ERROR_TYPES.COMMON_CREATION_ERROR);
@@ -96,7 +96,7 @@ export class OrderItemService {
         order_id: order.id,
         product_id: price.product_id,
         discount_price:
-          price.base_price * (1 - (price.base_discount_percentage || 0) / 100),
+          (price.base_price * (price.base_discount_percentage || 0)) / 100,
         label_price: price.base_price,
         sell_price:
           price.base_price -

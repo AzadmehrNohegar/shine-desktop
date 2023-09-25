@@ -9,19 +9,34 @@ import { SingleHistoryRow } from "./partials";
 import { toast } from "react-toastify";
 import { useComputedOrderItem } from "@frontend/utils";
 import { OrderItem } from "@prisma/client";
+import { errorResponse } from "@model/general";
 
 function HistorySingle() {
   const { order_id } = useParams();
 
   const { data, isLoading, isError } = useQuery(
     `order-single-${order_id}`,
-    () => getOrderById({ id: Number(order_id) })
+    () => getOrderById({ id: Number(order_id) }),
+    {
+      onError: (err: unknown) => {
+        const { reason } = err as errorResponse;
+        toast(reason, {
+          type: "error",
+        });
+      },
+    }
   );
 
   const postReceipt = useMutation(postOrderByIdInvoice, {
     onSuccess: () => {
       toast("رسید برای چاپگر ارسال شد.", {
         type: "success",
+      });
+    },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
       });
     },
   });
@@ -86,7 +101,7 @@ function HistorySingle() {
                     پرداخت شده
                   </span>
                   <span className="text-G3 font-semibold text-lg">
-                    {(total_price! - total_dicsount!).toLocaleString()} ریال
+                    {total_price?.toLocaleString()} ریال
                   </span>
                 </li>
               </ul>

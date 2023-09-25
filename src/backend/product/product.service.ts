@@ -4,6 +4,8 @@ import * as general from "@model/general";
 import { cloneable } from "@backend/utils/deepClone";
 import { Barcode, Price, Product } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
+import { serializedError } from "@backend/utils/serializedError";
+import { ERROR_TYPES } from "@backend/constants/locale";
 
 @Injectable()
 export class ProductService {
@@ -18,26 +20,30 @@ export class ProductService {
       >[];
       barcode: Pick<Barcode, "code">[];
     };
-    const result = await this.prisma.product.create({
-      data: {
-        internal_code: uuidv4(),
-        name,
-        price: {
-          create: price.map((item) => ({
-            inventory: item.inventory,
-            base_price: item.base_price,
-            base_discount_percentage: item.base_discount_percentage,
-          })),
+    try {
+      const result = await this.prisma.product.create({
+        data: {
+          internal_code: uuidv4(),
+          name,
+          price: {
+            create: price.map((item) => ({
+              inventory: item.inventory,
+              base_price: item.base_price,
+              base_discount_percentage: item.base_discount_percentage,
+            })),
+          },
+          barcode: {
+            create: barcode.map((item) => ({
+              code: item.code,
+            })),
+          },
         },
-        barcode: {
-          create: barcode.map((item) => ({
-            code: item.code,
-          })),
-        },
-      },
-    });
+      });
 
-    return result;
+      return result;
+    } catch (e) {
+      return serializedError(ERROR_TYPES.DUPLICATE_BARCODE);
+    }
   }
 
   async findAll(payload: general.IPCRendererRequestConfig) {

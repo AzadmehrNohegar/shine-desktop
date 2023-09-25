@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "react-query";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AddPriceModal } from "./partials";
+import { errorResponse } from "@model/general";
 
 type compositeProductBarcode = Product & {
   price: Price[];
@@ -29,6 +30,12 @@ function ProductTableRow({
       queryClient.invalidateQueries(["product-pagination"]);
       toast("محصول فعال شد.", {
         type: "success",
+      });
+    },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
       });
     },
   });

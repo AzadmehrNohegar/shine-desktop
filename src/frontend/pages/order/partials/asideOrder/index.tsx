@@ -34,6 +34,12 @@ function AsideOrder({ order_id }: IAsideOrderProps) {
       }),
     {
       keepPreviousData: true,
+      onError: (err: unknown) => {
+        const { reason } = err as errorResponse;
+        toast(reason, {
+          type: "error",
+        });
+      },
     }
   ) as { data: Record<string, string>[] };
 
@@ -45,8 +51,9 @@ function AsideOrder({ order_id }: IAsideOrderProps) {
       }
       queryClient.invalidateQueries("open-orders");
     },
-    onError: (err: errorResponse) => {
-      toast(err.reason, {
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
         type: "error",
       });
     },

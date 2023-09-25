@@ -35,6 +35,12 @@ function PaymentAction({
     onSuccess: (res: Pos[]) => {
       if (res?.length > 0) setPos_id(res[0].id);
     },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
+      });
+    },
   });
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -75,8 +81,9 @@ function PaymentAction({
       closeModal();
       queryClient.invalidateQueries();
     },
-    onError: (err: errorResponse) => {
-      toast(err.reason, {
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
         type: "error",
       });
     },

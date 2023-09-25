@@ -26,7 +26,7 @@ export const getOrderById = async ({ id }: IPCRendererRequestConfig) => {
 export const postOrderByIdInvoice = async ({
   id,
 }: IPCRendererRequestConfig) => {
-  const response = await onRequest("postInvoice", null, null, id);
+  const response = await onRequest("invoiceOrder", null, null, id);
   return response;
 };
 

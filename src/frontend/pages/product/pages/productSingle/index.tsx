@@ -12,6 +12,7 @@ import {
   putProduct,
 } from "@frontend/api";
 import { toast } from "react-toastify";
+import { errorResponse } from "@model/general";
 
 type compositeProduct = Product & {
   price: Pick<Price, "inventory" | "base_discount_percentage" | "base_price">[];
@@ -29,6 +30,12 @@ function ProductSingle() {
       });
       queryClient.invalidateQueries();
     },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
+      });
+    },
   });
 
   const { data } = useQuery(
@@ -36,6 +43,12 @@ function ProductSingle() {
     () => getProductById({ id: Number(id) }),
     {
       enabled: Boolean(id),
+      onError: (err: unknown) => {
+        const { reason } = err as errorResponse;
+        toast(reason, {
+          type: "error",
+        });
+      },
     }
   );
 
@@ -90,12 +103,24 @@ function ProductSingle() {
         type: "success",
       });
     },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
+      });
+    },
   });
 
   const modifyProduct = useMutation(putProduct, {
     onSuccess: () => {
       toast("محصول با موفقیت تدوین شد.", {
         type: "info",
+      });
+    },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
       });
     },
   });
@@ -132,7 +157,7 @@ function ProductSingle() {
           </Link>
           {id && <span>محصول شماره {id}</span>}
           {!id && <span>افزودن محصول</span>}
-          {id && (data as compositeProduct)?.is_active && (
+          {id && !(data as compositeProduct)?.is_active && (
             <Button
               variant="ghost"
               color="primary"
@@ -142,7 +167,7 @@ function ProductSingle() {
               فعال‌سازی محصول
             </Button>
           )}
-          {id && !(data as compositeProduct)?.is_active && (
+          {id && (data as compositeProduct)?.is_active && (
             <Button
               variant="ghost"
               color="danger"

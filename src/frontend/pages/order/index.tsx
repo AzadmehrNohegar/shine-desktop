@@ -7,8 +7,9 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import { deleteOrder, getOrder } from "@frontend/api";
 import Skeleton from "react-loading-skeleton";
 import clsx from "clsx";
-import { ORDER_TYPES } from "@model/general";
+import { ORDER_TYPES, errorResponse } from "@model/general";
 import { Order, OrderItem, Product } from "@prisma/client";
+import { toast } from "react-toastify";
 
 type compositeOrderItem = OrderItem & {
   sub_total: number;
@@ -46,6 +47,12 @@ function OrderPage() {
         setOrder_id(res[0].id as number);
       }
     },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
+      });
+    },
   });
 
   useEffect(() => {
@@ -66,6 +73,12 @@ function OrderPage() {
   const deleteOrderItem = useMutation(deleteOrder, {
     onSuccess: () => {
       queryClient.invalidateQueries("open-orders");
+    },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
+      });
     },
   });
 

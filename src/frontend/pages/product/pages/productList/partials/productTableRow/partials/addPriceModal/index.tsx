@@ -2,6 +2,7 @@ import { getProductById, putProduct } from "@frontend/api";
 import { Close, Plus } from "@frontend/assets/svg";
 import { Button, Dialog, Input } from "@frontend/components";
 import { Dialog as HeadlessDialog } from "@headlessui/react";
+import { errorResponse } from "@model/general";
 import { Barcode, Price, Product } from "@prisma/client";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "react-query";
@@ -25,8 +26,17 @@ function AddPriceModal({
 }: IAddPriceModalProps) {
   const queryClient = useQueryClient();
 
-  const { data } = useQuery(`product-single-${product_id}`, () =>
-    getProductById({ id: product_id })
+  const { data } = useQuery(
+    `product-single-${product_id}`,
+    () => getProductById({ id: product_id }),
+    {
+      onError: (err: unknown) => {
+        const { reason } = err as errorResponse;
+        toast(reason, {
+          type: "error",
+        });
+      },
+    }
   );
 
   const { control, watch, getValues, handleSubmit } = useForm<compositeProduct>(
@@ -54,6 +64,12 @@ function AddPriceModal({
       });
       queryClient.invalidateQueries();
       closeModal();
+    },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
+      });
     },
   });
 

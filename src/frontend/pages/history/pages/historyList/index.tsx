@@ -1,20 +1,20 @@
 import { getOrderPagination } from "@frontend/api";
 import { Input } from "@frontend/components";
-import { useDeferredValue, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "react-query";
 import { SingleHistoryRow } from "./partials";
 import Skeleton from "react-loading-skeleton";
 import { TablePagination } from "@frontend/shared";
 import { Order } from "@prisma/client";
+import { errorResponse } from "@model/general";
+import { toast } from "react-toastify";
 
 function HistoryList() {
   const [search, setSearch] = useState<string>("");
-  const deferredSearch = useDeferredValue(search);
-
+  console.log(search);
   const [page, setPage] = useState(1);
-
   const { data, isLoading, isError } = useQuery(
-    ["orders-list", page, deferredSearch],
+    ["orders-list", page, search],
     () =>
       getOrderPagination({
         params: { page, page_size: 10, id: Number(search) || null },
@@ -22,6 +22,12 @@ function HistoryList() {
     {
       initialData: { count: 0, results: [] },
       keepPreviousData: true,
+      onError: (err: unknown) => {
+        const { reason } = err as errorResponse;
+        toast(reason, {
+          type: "error",
+        });
+      },
     }
   );
 

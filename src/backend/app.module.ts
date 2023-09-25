@@ -13,6 +13,7 @@ import { RefundModule } from "./refund/refund.module";
 import { PaymentModule } from "./payment/payment.module";
 import { ApiModule } from "./api/api.module";
 import { PosModule } from './pos/pos.module';
+import { PrinterModule } from './printer/printer.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { PosModule } from './pos/pos.module';
     RefundModule,
     PaymentModule,
     PosModule,
+    PrinterModule,
   ],
   controllers: [AppController],
   providers: [AppService],
