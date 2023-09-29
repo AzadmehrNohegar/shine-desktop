@@ -5,4 +5,5 @@ export const ERROR_TYPES = {
   PRICE_NOT_FOUND: "قیمت مورد نظر یافت نشد.",
   COMMON_CREATION_ERROR: "مشکلی در ایجاد فرایند ایجاد پیش آمد.",
   DUPLICATE_BARCODE: "محصولی با این بارکد ثبت شده است.",
+  SETTINGS_UPDATE_FAILED: "به‌روز رسانی تنظیمات موفقیت آمیز نبود.",
 };

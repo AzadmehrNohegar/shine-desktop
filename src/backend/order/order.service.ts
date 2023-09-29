@@ -70,7 +70,11 @@ export class OrderService {
             discount_price: true,
             discount_total: true,
             label_price: true,
-            product: true,
+            product: {
+              include: {
+                barcode: true,
+              },
+            },
             quantity: true,
             sell_price: true,
             sub_total: true,

@@ -22,7 +22,7 @@ export class RefundService {
         data: {
           order_id,
           description,
-          RefundItem: {
+          refund_item: {
             create: items.map((item) => ({
               order_item_id: item.order_item,
               order_item_quantity: item.quantity,

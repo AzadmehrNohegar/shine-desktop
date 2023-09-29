@@ -2,9 +2,17 @@ import { ArrowRemittance } from "@frontend/assets/svg/ArrowRemittance";
 import { Dropdown } from "@frontend/components";
 import { useClock } from "@frontend/utils";
 import clsx from "clsx";
-import { House2, Profile, Receipt2, Send2, Shop, Tag2 } from "iconsax-react";
+import {
+  House2,
+  Profile,
+  Receipt2,
+  Send2,
+  Setting2,
+  Shop,
+  Tag2,
+} from "iconsax-react";
 import { Fragment } from "react";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 function Header() {
   const { hours, minutes } = useClock();
@@ -158,8 +166,8 @@ function Header() {
       </NavLink>
 
       <div className="flex items-center my-auto ms-auto gap-x-4">
-        <span>اپراتور: {"مهندس"}</span>
-        <span>شماره صندوق: {1}</span>
+        {/* <span>اپراتور: {"مهندس"}</span>
+        <span>شماره صندوق: {1}</span> */}
         <span>
           {new Intl.DateTimeFormat("fa-IR", {
             month: "long",
@@ -170,6 +178,13 @@ function Header() {
         <span>
           {hours}:{minutes}
         </span>
+        <Link
+          to="/settings"
+          className="inline-flex items-center gap-x-2 ms-10 font-bold text-primary"
+        >
+          <Setting2 />
+          نتظیمات
+        </Link>
       </div>
     </header>
   );

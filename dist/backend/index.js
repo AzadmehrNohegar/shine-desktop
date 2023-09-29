@@ -41,13 +41,13 @@ __export(backend_exports, {
 module.exports = __toCommonJS(backend_exports);
 var import_core = require("@nestjs/core");
 var import_electron2 = require("electron");
-var import_nest_electron8 = require("@doubleshot/nest-electron");
+var import_nest_electron9 = require("@doubleshot/nest-electron");
 
 // src/backend/app.module.ts
 var import_path = require("path");
-var import_common27 = require("@nestjs/common");
+var import_common30 = require("@nestjs/common");
 var import_config = require("@nestjs/config");
-var import_nest_electron7 = require("@doubleshot/nest-electron");
+var import_nest_electron8 = require("@doubleshot/nest-electron");
 var import_electron = require("electron");
 
 // src/backend/app.service.ts
@@ -191,7 +191,8 @@ var ERROR_TYPES = {
   ORDER_NOT_FOUND: "\u0633\u0641\u0627\u0631\u0634 \u0645\u0648\u0631\u062F \u0646\u0638\u0631 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F.",
   PRICE_NOT_FOUND: "\u0642\u06CC\u0645\u062A \u0645\u0648\u0631\u062F \u0646\u0638\u0631 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F.",
   COMMON_CREATION_ERROR: "\u0645\u0634\u06A9\u0644\u06CC \u062F\u0631 \u0627\u06CC\u062C\u0627\u062F \u0641\u0631\u0627\u06CC\u0646\u062F \u0627\u06CC\u062C\u0627\u062F \u067E\u06CC\u0634 \u0622\u0645\u062F.",
-  DUPLICATE_BARCODE: "\u0645\u062D\u0635\u0648\u0644\u06CC \u0628\u0627 \u0627\u06CC\u0646 \u0628\u0627\u0631\u06A9\u062F \u062B\u0628\u062A \u0634\u062F\u0647 \u0627\u0633\u062A."
+  DUPLICATE_BARCODE: "\u0645\u062D\u0635\u0648\u0644\u06CC \u0628\u0627 \u0627\u06CC\u0646 \u0628\u0627\u0631\u06A9\u062F \u062B\u0628\u062A \u0634\u062F\u0647 \u0627\u0633\u062A.",
+  SETTINGS_UPDATE_FAILED: "\u0628\u0647\u200C\u0631\u0648\u0632 \u0631\u0633\u0627\u0646\u06CC \u062A\u0646\u0638\u06CC\u0645\u0627\u062A \u0645\u0648\u0641\u0642\u06CC\u062A \u0622\u0645\u06CC\u0632 \u0646\u0628\u0648\u062F."
 };
 
 // src/backend/printer/printer.service.ts
@@ -338,7 +339,11 @@ var OrderService = /* @__PURE__ */ __name(class OrderService2 {
             discount_price: true,
             discount_total: true,
             label_price: true,
-            product: true,
+            product: {
+              include: {
+                barcode: true
+              }
+            },
             quantity: true,
             sell_price: true,
             sub_total: true
@@ -1264,7 +1269,7 @@ var RefundService = /* @__PURE__ */ __name(class RefundService2 {
         data: {
           order_id,
           description,
-          RefundItem: {
+          refund_item: {
             create: items.map((item) => ({
               order_item_id: item.order_item,
               order_item_quantity: item.quantity
@@ -1858,7 +1863,11 @@ PrinterModule = _ts_decorate26([
   })
 ], PrinterModule);
 
-// src/backend/app.module.ts
+// src/backend/settings/settings.module.ts
+var import_common29 = require("@nestjs/common");
+
+// src/backend/settings/settings.service.ts
+var import_common27 = require("@nestjs/common");
 function _ts_decorate27(decorators, target, key, desc) {
   var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
   if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
@@ -1870,15 +1879,153 @@ function _ts_decorate27(decorators, target, key, desc) {
   return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
 __name(_ts_decorate27, "_ts_decorate");
+function _ts_metadata16(k, v) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function")
+    return Reflect.metadata(k, v);
+}
+__name(_ts_metadata16, "_ts_metadata");
+var SettingsService = /* @__PURE__ */ __name(class SettingsService2 {
+  constructor(prisma) {
+    __publicField(this, "prisma");
+    this.prisma = prisma;
+  }
+  async findAll() {
+    const result = this.prisma.settings.findMany({});
+    return result;
+  }
+  async update(payload) {
+    const { body } = payload;
+    const { values } = body;
+    const result = await this.prisma.$transaction(values.map((item) => this.prisma.settings.upsert({
+      where: {
+        key: item.key
+      },
+      create: {
+        key: item.key,
+        value: item.value
+      },
+      update: {
+        value: item.value
+      }
+    })));
+    if (!result)
+      return serializedError(ERROR_TYPES.SETTINGS_UPDATE_FAILED);
+    return result;
+  }
+}, "SettingsService");
+SettingsService = _ts_decorate27([
+  (0, import_common27.Injectable)(),
+  _ts_metadata16("design:type", Function),
+  _ts_metadata16("design:paramtypes", [
+    typeof PrismaService === "undefined" ? Object : PrismaService
+  ])
+], SettingsService);
+
+// src/backend/settings/settings.controller.ts
+var import_common28 = require("@nestjs/common");
+var import_microservices7 = require("@nestjs/microservices");
+var import_nest_electron7 = require("@doubleshot/nest-electron");
+function _ts_decorate28(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate28, "_ts_decorate");
+function _ts_metadata17(k, v) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function")
+    return Reflect.metadata(k, v);
+}
+__name(_ts_metadata17, "_ts_metadata");
+function _ts_param7(paramIndex, decorator) {
+  return function(target, key) {
+    decorator(target, key, paramIndex);
+  };
+}
+__name(_ts_param7, "_ts_param");
+var SettingsController = /* @__PURE__ */ __name(class SettingsController2 {
+  constructor(settingsService) {
+    __publicField(this, "settingsService");
+    this.settingsService = settingsService;
+  }
+  findAll() {
+    return this.settingsService.findAll();
+  }
+  update(payload) {
+    return this.settingsService.update(payload);
+  }
+}, "SettingsController");
+_ts_decorate28([
+  (0, import_nest_electron7.IpcHandle)("findAllSettings"),
+  _ts_metadata17("design:type", Function),
+  _ts_metadata17("design:paramtypes", [])
+], SettingsController.prototype, "findAll", null);
+_ts_decorate28([
+  (0, import_nest_electron7.IpcHandle)("updateSettings"),
+  _ts_param7(0, (0, import_microservices7.Payload)()),
+  _ts_metadata17("design:type", Function),
+  _ts_metadata17("design:paramtypes", [
+    typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
+  ])
+], SettingsController.prototype, "update", null);
+SettingsController = _ts_decorate28([
+  (0, import_common28.Controller)(),
+  _ts_metadata17("design:type", Function),
+  _ts_metadata17("design:paramtypes", [
+    typeof SettingsService === "undefined" ? Object : SettingsService
+  ])
+], SettingsController);
+
+// src/backend/settings/settings.module.ts
+function _ts_decorate29(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate29, "_ts_decorate");
+var SettingsModule = /* @__PURE__ */ __name(class SettingsModule2 {
+}, "SettingsModule");
+SettingsModule = _ts_decorate29([
+  (0, import_common29.Module)({
+    controllers: [
+      SettingsController
+    ],
+    providers: [
+      SettingsService
+    ]
+  })
+], SettingsModule);
+
+// src/backend/app.module.ts
+function _ts_decorate30(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+__name(_ts_decorate30, "_ts_decorate");
 var AppModule = /* @__PURE__ */ __name(class AppModule2 {
 }, "AppModule");
-AppModule = _ts_decorate27([
-  (0, import_common27.Module)({
+AppModule = _ts_decorate30([
+  (0, import_common30.Module)({
     imports: [
       PrismaModule,
       ApiModule,
       import_config.ConfigModule.forRoot(),
-      import_nest_electron7.ElectronModule.registerAsync({
+      import_nest_electron8.ElectronModule.registerAsync({
         useFactory: async () => {
           const isDev = !import_electron.app.isPackaged;
           const win = new import_electron.BrowserWindow({
@@ -1906,7 +2053,8 @@ AppModule = _ts_decorate27([
       RefundModule,
       PaymentModule,
       PosModule,
-      PrinterModule
+      PrinterModule,
+      SettingsModule
     ],
     controllers: [
       AppController
@@ -1945,7 +2093,7 @@ async function bootstrap() {
   try {
     await electronAppInit();
     const nestApp = await import_core.NestFactory.createMicroservice(AppModule, {
-      strategy: new import_nest_electron8.ElectronIpcTransport("IpcTransport")
+      strategy: new import_nest_electron9.ElectronIpcTransport("IpcTransport")
     });
     await nestApp.listen();
   } catch (error) {

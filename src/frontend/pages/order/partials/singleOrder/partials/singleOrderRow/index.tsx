@@ -2,19 +2,16 @@ import { deleteOrderItem, putOrderItem } from "@frontend/api";
 import { Close, Minus, Plus } from "@frontend/assets/svg";
 import { Button, Input } from "@frontend/components";
 import { errorResponse } from "@model/general";
+import { Barcode, Product } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { NumericFormat } from "react-number-format";
 import { useMutation, useQueryClient } from "react-query";
 import { toast } from "react-toastify";
 
-type product = {
-  id: number;
-  internal_code: string;
-  name: string;
-};
-
 interface ISingleOrderRow {
-  product: product;
+  product: Product & {
+    barcode: Barcode[];
+  };
   quantity: number;
   sub_total: number;
   id: number;
@@ -30,7 +27,7 @@ function SingleOrderRow({
   sub_total,
   id,
 }: ISingleOrderRow) {
-  const { internal_code, name } = product;
+  const { barcode, name } = product;
 
   const [labelPriceEditable, setLabelPriceEditable] = useState<string>(
     label_price.toString()
@@ -109,8 +106,7 @@ function SingleOrderRow({
       </td>
       <td className="px-2 py-3 border-l border-l-G10 text-right">
         <span className="text-sm">
-          {name}
-          {internal_code}
+          {name} {barcode[0]?.code}
         </span>
       </td>
       <td className="px-2 py-3 border-l border-l-G10 text-right">

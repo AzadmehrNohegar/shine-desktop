@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider     = "sqlite"
-  url          = "file:\\db\\shine-desktop.db"
+  url          = "file:/Users/Shared/db/shine-desktop.db"
   relationMode = "foreignKeys"
 }
 
@@ -75,7 +75,7 @@ model Refund {
   modified_date DateTime     @updatedAt
   description   String       @default("")
   status        String       @default("from")
-  refundd_item  RefundItem[]
+  refund_item   RefundItem[]
 }
 
 model RefundItem {
@@ -122,4 +122,12 @@ model Payment {
   created_date       DateTime        @default(now())
   updated_date       DateTime        @updatedAt
   is_resolved        Boolean         @default(false)
+}
+
+model Settings {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value String
+
+  @@unique([key, value])
 }

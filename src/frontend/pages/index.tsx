@@ -6,6 +6,7 @@ const OrderPage = lazy(() => import("./order"));
 const RejectionPage = lazy(() => import("./rejection"));
 const HistoryPage = lazy(() => import("./history"));
 const ProductPage = lazy(() => import("./product"));
+const SettingsPage = lazy(() => import("./settings"));
 
 function BasePage() {
   return (
@@ -15,6 +16,7 @@ function BasePage() {
         <Route path="history/*" element={<HistoryPage />} />
         <Route path="rejection/*" element={<RejectionPage />} />
         <Route path="product/*" element={<ProductPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>
   );

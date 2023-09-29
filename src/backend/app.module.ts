@@ -14,6 +14,7 @@ import { PaymentModule } from "./payment/payment.module";
 import { ApiModule } from "./api/api.module";
 import { PosModule } from './pos/pos.module';
 import { PrinterModule } from './printer/printer.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { PrinterModule } from './printer/printer.module';
     PaymentModule,
     PosModule,
     PrinterModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
