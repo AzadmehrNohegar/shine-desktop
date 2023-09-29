@@ -69,6 +69,7 @@ function ProductSingle() {
   } = useForm<compositeProduct>({
     defaultValues: {
       name: "",
+      internal_code: 0,
       barcode: [],
       price: [
         {
@@ -181,17 +182,36 @@ function ProductSingle() {
       </div>
       <div className="flex items-stretch justify-between gap-x-4">
         <div className="flex flex-col items-start gap-y-2 w-full pb-[100px]">
-          <label htmlFor="unit_price" className="inline-block min-w-max">
-            نام محصول
-          </label>
-          <Input
-            id="name"
-            containerClassName="w-full"
-            placeholder="نام محصول..."
-            {...register("name", {
-              required: true,
-            })}
-          />
+          <div>
+            <label htmlFor="unit_price" className="inline-block min-w-max">
+              نام محصول
+            </label>
+            <Input
+              id="name"
+              containerClassName="w-full"
+              placeholder="نام محصول..."
+              {...register("name", {
+                required: true,
+              })}
+            />
+          </div>
+          <div>
+            <label htmlFor="internal_code" className="inline-block min-w-max">
+              کد داخلی محصول
+            </label>
+            <Input
+              id="internal_code"
+              type="number"
+              containerClassName="w-full"
+              placeholder="کد داخلی محصول..."
+              onFocus={(e) => e.currentTarget.select()}
+              {...register("internal_code", {
+                required: true,
+                valueAsNumber: true,
+              })}
+            />
+          </div>
+
           <ul className="flex flex-col divide-y gap-y-4">
             {fields.map((item, index) => (
               <li

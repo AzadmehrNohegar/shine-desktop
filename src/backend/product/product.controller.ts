@@ -43,8 +43,8 @@ export class ProductController {
     return this.productService.updateProductActivation(payload);
   }
 
-  // @IpcHandle("removeProduct")
-  // remove(@Payload() id: number) {
-  //   return this.productService.remove(id);
-  // }
+  @IpcHandle("uploadCSV")
+  uploadCSV(@Payload() payload: general.IPCRendererRequestConfig) {
+    return this.productService.uploadCSV(payload);
+  }
 }

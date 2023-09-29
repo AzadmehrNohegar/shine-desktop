@@ -9,7 +9,8 @@ declare global {
         endpoint: string,
         body: Record<string, unknown> | null,
         params?: any,
-        id?: number
+        id?: number | null,
+        data?: FormData
       ) => Promise<
         | Record<string, unknown>
         | Array<Record<string, number | string>>

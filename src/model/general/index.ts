@@ -7,6 +7,7 @@ export interface IPCRendererRequestConfig {
   slug?: string;
   body?: Record<string, unknown>;
   params?: Record<string, string | number | null>;
+  data?: FormData;
 }
 
 export type apiPaginationResponse = {

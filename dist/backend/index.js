@@ -192,7 +192,10 @@ var ERROR_TYPES = {
   PRICE_NOT_FOUND: "\u0642\u06CC\u0645\u062A \u0645\u0648\u0631\u062F \u0646\u0638\u0631 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F.",
   COMMON_CREATION_ERROR: "\u0645\u0634\u06A9\u0644\u06CC \u062F\u0631 \u0627\u06CC\u062C\u0627\u062F \u0641\u0631\u0627\u06CC\u0646\u062F \u0627\u06CC\u062C\u0627\u062F \u067E\u06CC\u0634 \u0622\u0645\u062F.",
   DUPLICATE_BARCODE: "\u0645\u062D\u0635\u0648\u0644\u06CC \u0628\u0627 \u0627\u06CC\u0646 \u0628\u0627\u0631\u06A9\u062F \u062B\u0628\u062A \u0634\u062F\u0647 \u0627\u0633\u062A.",
-  SETTINGS_UPDATE_FAILED: "\u0628\u0647\u200C\u0631\u0648\u0632 \u0631\u0633\u0627\u0646\u06CC \u062A\u0646\u0638\u06CC\u0645\u0627\u062A \u0645\u0648\u0641\u0642\u06CC\u062A \u0622\u0645\u06CC\u0632 \u0646\u0628\u0648\u062F."
+  SETTINGS_UPDATE_FAILED: "\u0628\u0647\u200C\u0631\u0648\u0632 \u0631\u0633\u0627\u0646\u06CC \u062A\u0646\u0638\u06CC\u0645\u0627\u062A \u0645\u0648\u0641\u0642\u06CC\u062A \u0622\u0645\u06CC\u0632 \u0646\u0628\u0648\u062F.",
+  INVALID_FILE: "\u0641\u0627\u06CC\u0644 \u0642\u0627\u0628\u0644 \u0642\u0628\u0648\u0644 \u0646\u06CC\u0633\u062A.",
+  PRICE_NEEDED: "\u062D\u062F\u0627\u0642\u0644 \u06CC\u06A9 \u0642\u06CC\u0645\u062A \u0648\u0627\u0631\u062F \u06A9\u0646\u06CC\u062F.",
+  INVALID_FILE_CONTENT: "\u0645\u062D\u062A\u0648\u06CC\u0627\u062A \u0641\u0627\u06CC\u0644 \u0627\u0634\u062A\u0628\u0627\u0647 \u0627\u0633\u062A."
 };
 
 // src/backend/printer/printer.service.ts
@@ -857,7 +860,22 @@ var import_common14 = require("@nestjs/common");
 
 // src/backend/product/product.service.ts
 var import_common12 = require("@nestjs/common");
-var import_uuid = require("uuid");
+
+// src/backend/utils/persianConvert.ts
+var PersianConvert = class {
+};
+__name(PersianConvert, "PersianConvert");
+__publicField(PersianConvert, "convertPersian2English", /* @__PURE__ */ __name((string) => {
+  if (!string)
+    return null;
+  if (string.length === 0)
+    return "";
+  return string.replace(/[\u0660-\u0669\u06f0-\u06f9]/g, (c) => {
+    return (c.charCodeAt(0) & 15).toString();
+  });
+}, "convertPersian2English"));
+
+// src/backend/product/product.service.ts
 function _ts_decorate12(decorators, target, key, desc) {
   var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
   if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
@@ -881,30 +899,28 @@ var ProductService = /* @__PURE__ */ __name(class ProductService2 {
   }
   async create(payload) {
     const { body } = payload;
-    const { name, price, barcode } = body;
-    try {
-      const result = await this.prisma.product.create({
-        data: {
-          internal_code: (0, import_uuid.v4)(),
-          name,
-          price: {
-            create: price.map((item) => ({
-              inventory: item.inventory,
-              base_price: item.base_price,
-              base_discount_percentage: item.base_discount_percentage
-            }))
-          },
-          barcode: {
-            create: barcode.map((item) => ({
-              code: item.code
-            }))
-          }
+    const { name, internal_code, price, barcode } = body;
+    if (price.length === 0)
+      return serializedError(ERROR_TYPES.PRICE_NEEDED);
+    const result = await this.prisma.product.create({
+      data: {
+        internal_code: Number(internal_code),
+        name,
+        price: {
+          create: price.map((item) => ({
+            inventory: item.inventory,
+            base_price: item.base_price,
+            base_discount_percentage: item.base_discount_percentage
+          }))
+        },
+        barcode: {
+          create: barcode.map((item) => ({
+            code: item.code
+          }))
         }
-      });
-      return result;
-    } catch (e) {
-      return serializedError(ERROR_TYPES.DUPLICATE_BARCODE);
-    }
+      }
+    });
+    return result;
   }
   async findAll(payload) {
     const { params } = payload;
@@ -1084,6 +1100,61 @@ var ProductService = /* @__PURE__ */ __name(class ProductService2 {
     });
     return result;
   }
+  async uploadCSV(payload) {
+    const { body } = payload;
+    const { values } = body;
+    const subArrays = [];
+    if (values.length % 6 !== 0)
+      return serializedError(ERROR_TYPES.INVALID_FILE);
+    for (let index = 0; index < values.length; index += 6) {
+      const subArray = values.slice(index, index + 6);
+      subArrays.push(subArray);
+    }
+    try {
+      const result = await this.prisma.$transaction(subArrays.map((item) => {
+        const [name, internal_code, barcode, base_discount_percentage, inventory, base_price] = item;
+        return this.prisma.product.upsert({
+          where: {
+            internal_code: Number(internal_code)
+          },
+          update: {
+            name,
+            price: {
+              create: {
+                inventory: Number(PersianConvert.convertPersian2English(inventory)),
+                base_price: Number(PersianConvert.convertPersian2English(base_price)),
+                base_discount_percentage: Number(PersianConvert.convertPersian2English(base_discount_percentage))
+              }
+            },
+            barcode: {
+              create: {
+                code: PersianConvert.convertPersian2English(barcode)
+              }
+            }
+          },
+          create: {
+            name,
+            internal_code: Number(internal_code),
+            price: {
+              create: {
+                inventory: Number(PersianConvert.convertPersian2English(inventory)),
+                base_price: Number(PersianConvert.convertPersian2English(base_price)),
+                base_discount_percentage: Number(PersianConvert.convertPersian2English(base_discount_percentage))
+              }
+            },
+            barcode: {
+              create: {
+                code: PersianConvert.convertPersian2English(barcode)
+              }
+            }
+          }
+        });
+      }));
+      return result;
+    } catch (e) {
+      return serializedError(ERROR_TYPES.INVALID_FILE_CONTENT);
+    }
+  }
 }, "ProductService");
 ProductService = _ts_decorate12([
   (0, import_common12.Injectable)(),
@@ -1145,6 +1216,9 @@ var ProductController = /* @__PURE__ */ __name(class ProductController2 {
   updateActivation(payload) {
     return this.productService.updateProductActivation(payload);
   }
+  uploadCSV(payload) {
+    return this.productService.uploadCSV(payload);
+  }
 }, "ProductController");
 _ts_decorate13([
   (0, import_nest_electron3.IpcHandle)("createProduct"),
@@ -1202,6 +1276,14 @@ _ts_decorate13([
     typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
   ])
 ], ProductController.prototype, "updateActivation", null);
+_ts_decorate13([
+  (0, import_nest_electron3.IpcHandle)("uploadCSV"),
+  _ts_param3(0, (0, import_microservices3.Payload)()),
+  _ts_metadata8("design:type", Function),
+  _ts_metadata8("design:paramtypes", [
+    typeof general_exports === "undefined" || typeof void 0 === "undefined" ? Object : void 0
+  ])
+], ProductController.prototype, "uploadCSV", null);
 ProductController = _ts_decorate13([
   (0, import_common13.Controller)(),
   _ts_metadata8("design:type", Function),
@@ -1485,20 +1567,6 @@ PosService = _ts_decorate19([
     typeof ApiService === "undefined" ? Object : ApiService
   ])
 ], PosService);
-
-// src/backend/utils/persianConvert.ts
-var PersianConvert = class {
-};
-__name(PersianConvert, "PersianConvert");
-__publicField(PersianConvert, "convertPersian2English", /* @__PURE__ */ __name((string) => {
-  if (!string)
-    return null;
-  if (string.length === 0)
-    return "";
-  return string.replace(/[\u0660-\u0669\u06f0-\u06f9]/g, (c) => {
-    return (c.charCodeAt(0) & 15).toString();
-  });
-}, "convertPersian2English"));
 
 // src/backend/payment/payment.service.ts
 var import_common20 = require("@nestjs/common");

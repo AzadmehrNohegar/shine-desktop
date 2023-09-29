@@ -47,3 +47,8 @@ export const postProduct = async ({ body }: IPCRendererRequestConfig) => {
   const response = await onRequest("createProduct", body!);
   return response;
 };
+
+export const postCSV = async ({ body }: IPCRendererRequestConfig) => {
+  const response = await onRequest("uploadCSV", body!);
+  return response;
+};

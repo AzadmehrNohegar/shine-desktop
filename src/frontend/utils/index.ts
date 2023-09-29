@@ -7,3 +7,4 @@ export { useDebouncedValue } from "./useDeboucedValue";
 export { useComputedOrderItem } from "./useComputedOrderItem";
 export { useActiveElement } from "./useActiveElement";
 export { useClock } from "./useClock";
+export { useDeepClone } from "./useDeepClone";

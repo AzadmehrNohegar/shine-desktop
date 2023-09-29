@@ -7,7 +7,8 @@ contextBridge.exposeInMainWorld("electron", {
     endpoint: string,
     body: Record<string, unknown> | null,
     params?: any,
-    id?: number
+    id?: number | null,
+    data?: FormData
   ): Promise<
     | Record<string, unknown>
     | apiPaginationResponse
@@ -18,6 +19,7 @@ contextBridge.exposeInMainWorld("electron", {
       body,
       params,
       id,
+      data,
     });
     if (response.reason) throw response;
     return response;

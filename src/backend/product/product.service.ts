@@ -3,9 +3,9 @@ import { Injectable } from "@nestjs/common";
 import * as general from "@model/general";
 import { cloneable } from "@backend/utils/deepClone";
 import { Barcode, Price, Product } from "@prisma/client";
-import { v4 as uuidv4 } from "uuid";
 import { serializedError } from "@backend/utils/serializedError";
 import { ERROR_TYPES } from "@backend/constants/locale";
+import { PersianConvert } from "@backend/utils/persianConvert";
 
 @Injectable()
 export class ProductService {
@@ -13,37 +13,36 @@ export class ProductService {
 
   async create(payload: general.IPCRendererRequestConfig) {
     const { body } = payload;
-    const { name, price, barcode } = body as Product & {
+    const { name, internal_code, price, barcode } = body as Product & {
       price: Pick<
         Price,
         "inventory" | "base_discount_percentage" | "base_price"
       >[];
       barcode: Pick<Barcode, "code">[];
     };
-    try {
-      const result = await this.prisma.product.create({
-        data: {
-          internal_code: uuidv4(),
-          name,
-          price: {
-            create: price.map((item) => ({
-              inventory: item.inventory,
-              base_price: item.base_price,
-              base_discount_percentage: item.base_discount_percentage,
-            })),
-          },
-          barcode: {
-            create: barcode.map((item) => ({
-              code: item.code,
-            })),
-          },
-        },
-      });
 
-      return result;
-    } catch (e) {
-      return serializedError(ERROR_TYPES.DUPLICATE_BARCODE);
-    }
+    if (price.length === 0) return serializedError(ERROR_TYPES.PRICE_NEEDED);
+
+    const result = await this.prisma.product.create({
+      data: {
+        internal_code: Number(internal_code),
+        name,
+        price: {
+          create: price.map((item) => ({
+            inventory: item.inventory,
+            base_price: item.base_price,
+            base_discount_percentage: item.base_discount_percentage,
+          })),
+        },
+        barcode: {
+          create: barcode.map((item) => ({
+            code: item.code,
+          })),
+        },
+      },
+    });
+
+    return result;
   }
 
   async findAll(payload: general.IPCRendererRequestConfig) {
@@ -252,6 +251,94 @@ export class ProductService {
     });
 
     return result;
+  }
+
+  async uploadCSV(payload: general.IPCRendererRequestConfig) {
+    const { body } = payload;
+    const { values } = body as {
+      values: string[];
+    };
+
+    const subArrays = [];
+
+    if (values.length % 6 !== 0)
+      return serializedError(ERROR_TYPES.INVALID_FILE);
+    for (let index = 0; index < values.length; index += 6) {
+      const subArray = values.slice(index, index + 6);
+      subArrays.push(subArray);
+    }
+
+    try {
+      const result = await this.prisma.$transaction(
+        subArrays.map((item) => {
+          const [
+            name,
+            internal_code,
+            barcode,
+            base_discount_percentage,
+            inventory,
+            base_price,
+          ] = item;
+
+          return this.prisma.product.upsert({
+            where: {
+              internal_code: Number(internal_code),
+            },
+            update: {
+              name: name,
+              price: {
+                create: {
+                  inventory: Number(
+                    PersianConvert.convertPersian2English(inventory)
+                  ),
+                  base_price: Number(
+                    PersianConvert.convertPersian2English(base_price)
+                  ),
+                  base_discount_percentage: Number(
+                    PersianConvert.convertPersian2English(
+                      base_discount_percentage
+                    )
+                  ),
+                },
+              },
+              barcode: {
+                create: {
+                  code: PersianConvert.convertPersian2English(barcode)!,
+                },
+              },
+            },
+            create: {
+              name: name,
+              internal_code: Number(internal_code),
+              price: {
+                create: {
+                  inventory: Number(
+                    PersianConvert.convertPersian2English(inventory)
+                  ),
+                  base_price: Number(
+                    PersianConvert.convertPersian2English(base_price)
+                  ),
+                  base_discount_percentage: Number(
+                    PersianConvert.convertPersian2English(
+                      base_discount_percentage
+                    )
+                  ),
+                },
+              },
+              barcode: {
+                create: {
+                  code: PersianConvert.convertPersian2English(barcode)!,
+                },
+              },
+            },
+          });
+        })
+      );
+
+      return result;
+    } catch (e) {
+      return serializedError(ERROR_TYPES.INVALID_FILE_CONTENT);
+    }
   }
 
   // remove(id: number) {
