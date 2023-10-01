@@ -85,12 +85,35 @@ function SelectPriceModal({
           {(data as compositeProduct)?.price.map((item) => (
             <li key={item.id} className="py-2 font-bold text-xl basis-modified">
               <Button
-                className="w-full text-start flex items-center justify-between min-h-[120px]"
+                className="w-full text-start flex flex-col justify-around min-h-[120px]"
                 variant="outline"
                 onClick={() => handleCreateOrderItem(item.id)}
               >
-                <span>قیمت محصول:</span>
-                <strong>{item.base_price.toLocaleString()} ریال</strong>
+                <span className="inline-flex items-center w-full justify-between border-b pb-4">
+                  <span className="self-start text-lg">قیمت محصول:</span>
+                  <strong className="self-end text-xl font-bold">
+                    {item.base_price.toLocaleString()} ریال
+                  </strong>
+                </span>
+                {item.base_discount_percentage &&
+                  item.base_discount_percentage !== 0 && (
+                    <span className="inline-flex items-center w-full justify-between text-danger">
+                      <span>قیمت محصول بعد از تخفیف:</span>
+                      <strong>
+                        {(
+                          item.base_price -
+                          (item.base_price * item.base_discount_percentage) /
+                            100
+                        ).toLocaleString()}{" "}
+                        ریال
+                      </strong>
+                    </span>
+                  )}
+
+                <span className="inline-flex items-center w-full justify-between text-info">
+                  <span>موجودی محصول:</span>
+                  <strong>{item.inventory} عدد</strong>
+                </span>
               </Button>
             </li>
           ))}

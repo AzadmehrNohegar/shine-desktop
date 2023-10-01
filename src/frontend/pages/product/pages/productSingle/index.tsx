@@ -182,7 +182,7 @@ function ProductSingle() {
       </div>
       <div className="flex items-stretch justify-between gap-x-4">
         <div className="flex flex-col items-start gap-y-2 w-full pb-[100px]">
-          <div>
+          <div className="w-full">
             <label htmlFor="unit_price" className="inline-block min-w-max">
               نام محصول
             </label>

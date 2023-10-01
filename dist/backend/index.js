@@ -1104,7 +1104,7 @@ var ProductService = /* @__PURE__ */ __name(class ProductService2 {
     const { body } = payload;
     const { values } = body;
     const subArrays = [];
-    if (values.length % 6 !== 0)
+    if (values.length % 6 !== 0 || values.length === 0)
       return serializedError(ERROR_TYPES.INVALID_FILE);
     for (let index = 0; index < values.length; index += 6) {
       const subArray = values.slice(index, index + 6);

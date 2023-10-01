@@ -62,7 +62,7 @@ function ProductTableRow({
           className="px-2 py-3 truncate border-l border-l-G10 text-center"
           rowSpan={price.length}
         >
-          {name}
+          <small>{name}</small>
         </td>
         <td
           className="px-2 py-3 truncate border-l border-l-G10 text-center"
@@ -91,7 +91,7 @@ function ProductTableRow({
           <div className="flex flex-col items-center p-2 gap-y-2">
             <Button
               size="large"
-              className="w-full"
+              className="w-full text-xs"
               onClick={() => setIsAddPriceOpen(true)}
             >
               افزودن قیمت
@@ -109,6 +109,7 @@ function ProductTableRow({
               <Button
                 variant="outline-muted"
                 size="large"
+                className="text-xs"
                 onClick={handleActivationToggle}
               >
                 فعال‌سازی محصول
@@ -117,7 +118,7 @@ function ProductTableRow({
             {is_active && (
               <Link
                 to={`./${id}`}
-                className="w-full h-min text-primary px-5 py-3 text-base border border-primary rounded-lg text-center"
+                className="w-full text-sm h-min text-primary px-5 py-3 border border-primary rounded-lg text-center"
               >
                 ویرایش محصول
               </Link>
