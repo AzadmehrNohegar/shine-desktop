@@ -4,7 +4,6 @@ import { Button, Input } from "@frontend/components";
 import { errorResponse } from "@model/general";
 import { Barcode, OrderItem, Product } from "@prisma/client";
 import { useEffect, useState } from "react";
-import { NumericFormat } from "react-number-format";
 import { useMutation, useQueryClient } from "react-query";
 import { toast } from "react-toastify";
 
@@ -25,10 +24,6 @@ function SingleOrderRow({
   id,
 }: compositeOrderItem) {
   const { barcode, name } = product;
-
-  const [labelPriceEditable, setLabelPriceEditable] = useState<string>(
-    label_price.toString()
-  );
 
   const [quantityEditable, setQuantityEditable] = useState<number>(quantity);
 
@@ -69,16 +64,6 @@ function SingleOrderRow({
       body: {
         quantity: value,
         label_price,
-      },
-    });
-  };
-
-  const handleLabelPriceChange = (value?: string) => {
-    mutateOrderItem.mutate({
-      id: id,
-      body: {
-        quantity,
-        label_price: Number(value),
       },
     });
   };
@@ -151,16 +136,7 @@ function SingleOrderRow({
         </div>
       </td>
       <td className="px-2 py-3 truncate border-l border-l-G10 text-right">
-        <NumericFormat
-          name="labelPriceEditable"
-          className="px-0 text-center max-w-[80px] rounded-lg border border-G10 py-3"
-          value={labelPriceEditable}
-          onValueChange={({ value }) => {
-            setLabelPriceEditable(value);
-            handleLabelPriceChange(value);
-          }}
-          thousandSeparator
-        />
+        <strong>{label_price.toLocaleString()}</strong>
       </td>
       <td className="px-2 py-3 truncate border-l border-l-G10 text-right">
         <strong>{discount_total.toLocaleString()}</strong>{" "}

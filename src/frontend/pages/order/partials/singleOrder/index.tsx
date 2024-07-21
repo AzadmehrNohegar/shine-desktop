@@ -128,6 +128,7 @@ const SingleOrder = forwardRef(
 
             <div className="flex flex-col">
               <span>تعداد کل اقلام: {total_count}</span>
+              <span>تعداد ردیف فاکتور: {order_items.length}</span>
               <span>تخفیف: {total_dicsount?.toLocaleString()} ریال</span>
             </div>
             <div className="mr-auto">

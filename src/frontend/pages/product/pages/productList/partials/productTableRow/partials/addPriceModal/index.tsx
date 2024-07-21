@@ -94,7 +94,7 @@ function AddPriceModal({
           variant="ghost"
           color="danger"
           onClick={closeModal}
-          className="absolute inset-y-auto left-4 outline-none focus:outline-none"
+          className="absolute inset-y-auto left-0 outline-none focus:outline-none"
         >
           <Close />
         </Button>
@@ -216,7 +216,7 @@ function AddPriceModal({
           <Plus />
           افزودن قیمت جدید
         </Button>
-        <div className="absolute bottom-0 left-0 w-full p-4">
+        <div className="fixed bg-white bottom-0 left-0 w-full p-4">
           <Button className="w-full" color="success" size="touch">
             ثبت قیمت
           </Button>
