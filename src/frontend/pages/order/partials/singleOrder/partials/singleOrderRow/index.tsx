@@ -2,22 +2,19 @@ import { deleteOrderItem, putOrderItem } from "@frontend/api";
 import { Close, Minus, Plus } from "@frontend/assets/svg";
 import { Button, Input } from "@frontend/components";
 import { errorResponse } from "@model/general";
-import { Barcode, Product } from "@prisma/client";
+import { Barcode, OrderItem, Product } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { NumericFormat } from "react-number-format";
 import { useMutation, useQueryClient } from "react-query";
 import { toast } from "react-toastify";
 
-interface ISingleOrderRow {
+type compositeOrderItem = OrderItem & {
+  sub_total: number;
+  discount_total: number;
   product: Product & {
     barcode: Barcode[];
   };
-  quantity: number;
-  sub_total: number;
-  id: number;
-  label_price: number;
-  discount_total: number;
-}
+};
 
 function SingleOrderRow({
   label_price,
@@ -26,7 +23,7 @@ function SingleOrderRow({
   discount_total,
   sub_total,
   id,
-}: ISingleOrderRow) {
+}: compositeOrderItem) {
   const { barcode, name } = product;
 
   const [labelPriceEditable, setLabelPriceEditable] = useState<string>(

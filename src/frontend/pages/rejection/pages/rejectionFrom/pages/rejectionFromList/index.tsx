@@ -39,7 +39,7 @@ function RejectionFromListPage() {
     return <Skeleton width="97vw" height="88vh" className="mr-4" />;
 
   return (
-    <div className="w-full my-4 p-4  h-full shadow-card">
+    <div className="w-full my-4 p-4 shadow-card">
       <div className="mb-4 flex items-center gap-x-2">
         <label htmlFor="phone" className="inline-block min-w-max">
           جست‌وجو شماره سفارش:

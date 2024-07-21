@@ -8,13 +8,15 @@ import { deleteOrder, getOrder } from "@frontend/api";
 import Skeleton from "react-loading-skeleton";
 import clsx from "clsx";
 import { ORDER_TYPES, errorResponse } from "@model/general";
-import { Order, OrderItem, Product } from "@prisma/client";
+import { Barcode, Order, OrderItem, Product } from "@prisma/client";
 import { toast } from "react-toastify";
 
 type compositeOrderItem = OrderItem & {
   sub_total: number;
   discount_total: number;
-  product: Product;
+  product: Product & {
+    barcode: Barcode[];
+  };
 };
 
 type compositeOrder = Order & {
@@ -97,7 +99,7 @@ function OrderPage() {
     return <Skeleton containerClassName="w-full" className="h-full" />;
 
   return (
-    <div className="flex items-start h-full w-full pt-4">
+    <div className="flex items-start h-full w-full py-4">
       <AsideOrder order_id={order_id} />
       <Tab.Group
         selectedIndex={selectedIndex}

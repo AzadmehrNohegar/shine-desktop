@@ -9,4 +9,5 @@ export const ERROR_TYPES = {
   INVALID_FILE: "فایل قابل قبول نیست.",
   PRICE_NEEDED: "حداقل یک قیمت وارد کنید.",
   INVALID_FILE_CONTENT: "محتویات فایل اشتباه است.",
+  NO_ORDERS: "سفارشی موجود نیست.",
 };

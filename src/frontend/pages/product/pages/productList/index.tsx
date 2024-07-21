@@ -39,7 +39,7 @@ function ProductList() {
   );
 
   return (
-    <div className="w-full m-4 min-h-container h-full">
+    <div className="w-full m-4">
       <div className="flex items-center gap-x-2 mb-4">
         <label htmlFor="search">جستجو نام یا بارکد محصول: </label>
         <Input

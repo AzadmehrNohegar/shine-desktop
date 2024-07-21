@@ -85,7 +85,7 @@ function SettingsPage() {
     <div className="p-6 w-full relative">
       <div className="w-full flex items-stretch gap-x-4">
         <form
-          className="w-full min-h-container flex flex-col"
+          className="w-full flex flex-col"
           onSubmit={handleSubmit(onSubmit)}
         >
           <h2 className="text-xl font-bold w-full my-5">

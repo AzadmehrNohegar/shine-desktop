@@ -3,9 +3,9 @@ import { Header } from "./partials";
 
 function DeskLayout() {
   return (
-    <section className="h-screen w-full">
+    <section className="flex flex-col h-screen w-full">
       <Header />
-      <main className="flex items-stretch justify-start h-container overflow-y-auto w-full">
+      <main className="flex items-stretch justify-start h-full overflow-y-auto w-full">
         <Outlet />
       </main>
     </section>

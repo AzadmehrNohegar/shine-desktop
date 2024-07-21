@@ -6,14 +6,16 @@ import { Fragment, LegacyRef, forwardRef, useState } from "react";
 import { PaymentAction, ScanDetection } from "@frontend/shared";
 import { Trash } from "iconsax-react";
 import { useComputedOrderItem } from "@frontend/utils";
-import { OrderItem, Product } from "@prisma/client";
+import { Barcode, OrderItem, Product } from "@prisma/client";
 import { toast } from "react-toastify";
 import { errorResponse } from "@model/general";
 
 type compositeOrderItem = OrderItem & {
   sub_total: number;
   discount_total: number;
-  product: Product;
+  product: Product & {
+    barcode: Barcode[];
+  };
 };
 
 interface ISingleOrderProps {
@@ -57,7 +59,7 @@ const SingleOrder = forwardRef(
       <Fragment>
         <ScanDetection order_id={order_id} />
         <div className="h-full flex flex-col gap-y-4" ref={ref}>
-          <div className="relative text-sm overflow-x-auto text-right h-full max-h-[358px] xl:max-h-[600px] overflow-y-auto shadow-card rounded-lg">
+          <div className="relative text-sm overflow-x-auto text-right overflow-y-auto shadow-card rounded-lg h-full max-h-[376px] xl:max-h-[668px]">
             <table className="w-full text-G2 text-right border border-G10 relative">
               <thead className="font-semibold z-10 bg-B11 sticky -top-1 border-b border-b-G10 text-GDesk">
                 <tr>
@@ -138,7 +140,7 @@ const SingleOrder = forwardRef(
             size="unspecified"
             type="button"
             color="success"
-            className="w-full py-4 mb-8"
+            className="w-full py-4"
             onClick={() => setActionOpen(true)}
           >
             ثبت سفارش

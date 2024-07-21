@@ -35,6 +35,11 @@ export const postOrder = async ({ body }: IPCRendererRequestConfig) => {
   return response;
 };
 
+export const postOrderExcel = async () => {
+  const response = await onRequest("excelOrder", null);
+  return response;
+};
+
 export const putOrderItem = async ({ id, body }: IPCRendererRequestConfig) => {
   const response = await onRequest("updateOrderItem", body!, null, id);
   return response;

@@ -162,7 +162,7 @@ function Header() {
         end
       >
         <Tag2 size={20} />
-        قیمت
+        انبارداری
       </NavLink>
 
       <div className="flex items-center my-auto ms-auto gap-x-4">

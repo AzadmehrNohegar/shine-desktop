@@ -11,23 +11,26 @@ interface ITablePaginationProps {
 function TablePagination({ page, setPage, count }: ITablePaginationProps) {
   return (
     <div className="w-full flex items-center px-4">
-      <Button
-        size="touch"
-        variant="ghost"
-        onClick={() => setPage((prevState: number) => prevState + 1)}
-        disabled={page === Math.ceil(count / 10)}
-      >
-        <RightChevron />
-      </Button>
-      <span>صفحه {page}</span>
-      <Button
-        size="touch"
-        variant="ghost"
-        onClick={() => setPage((prevState: number) => prevState - 1)}
-        disabled={page === 1}
-      >
-        <LeftChevron />
-      </Button>
+      <div className="flex items-center flex-row-reverse">
+        <Button
+          size="touch"
+          variant="ghost"
+          onClick={() => setPage((prevState: number) => prevState + 1)}
+          disabled={page === Math.ceil(count / 10)}
+        >
+          <LeftChevron />
+        </Button>
+        <span>صفحه {page}</span>
+        <Button
+          size="touch"
+          variant="ghost"
+          onClick={() => setPage((prevState: number) => prevState - 1)}
+          disabled={page === 1}
+        >
+          <RightChevron />
+        </Button>
+      </div>
+
       <span className="inline-block mr-auto">تعداد کل داده ها: {count}</span>
     </div>
   );

@@ -1,7 +1,7 @@
-import { getOrderPagination } from "@frontend/api";
-import { Input } from "@frontend/components";
+import { getOrderPagination, postOrderExcel } from "@frontend/api";
+import { Button, Input } from "@frontend/components";
 import { useState } from "react";
-import { useQuery } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import { SingleHistoryRow } from "./partials";
 import Skeleton from "react-loading-skeleton";
 import { TablePagination } from "@frontend/shared";
@@ -30,11 +30,30 @@ function HistoryList() {
     }
   );
 
+  const postExcel = useMutation(postOrderExcel, {
+    onSuccess: (res) => {
+      const el = document.createElement("a");
+      const blob = new Blob([res as unknown as Uint8Array]);
+      el.href = window.URL.createObjectURL(blob);
+      el.download = `output.xlsx`;
+      el.click();
+      el.parentElement?.removeChild(el);
+    },
+    onError: (err: unknown) => {
+      const { reason } = err as errorResponse;
+      toast(reason, {
+        type: "error",
+      });
+    },
+  });
+
+  const excel = () => postExcel.mutate();
+
   if (isLoading || isError)
     return <Skeleton width="97vw" height="88vh" className="mr-4" />;
 
   return (
-    <div className="w-full my-4 p-4 min-h-container h-full shadow-card">
+    <div className="w-full my-4 p-4 shadow-card">
       <div className="flex items-center gap-x-2 mb-4">
         <label htmlFor="phone" className="inline-block min-w-max">
           جست‌وجو شماره سفارش:
@@ -50,6 +69,9 @@ function HistoryList() {
             setSearch(e.target.value);
           }}
         />
+        <Button size="large" className="ms-auto" onClick={excel}>
+          دریافت خروجی اکسل
+        </Button>
       </div>
       {data?.results && (
         <table className="w-full text-G2 text-right border border-G10 relative">

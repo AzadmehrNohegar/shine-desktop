@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider     = "sqlite"
-  url          = "file:/Users/Shared/db/shine-desktop.db"
+  url          = "file:\\db\\shine-desktop.db"
   relationMode = "foreignKeys"
 }
 

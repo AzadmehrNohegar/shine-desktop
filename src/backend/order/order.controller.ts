@@ -37,4 +37,9 @@ export class OrderController {
   invoice(@Payload() payload: general.IPCRendererRequestConfig) {
     return this.orderService.invoice(payload);
   }
+
+  @IpcHandle("excelOrder")
+  excel() {
+    return this.orderService.excel();
+  }
 }

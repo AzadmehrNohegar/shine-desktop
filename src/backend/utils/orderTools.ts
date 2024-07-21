@@ -9,6 +9,10 @@ function orderTools(order: unknown) {
     .map((item) => item.label_price * item.quantity)
     .reduce((prev, curr) => prev + curr, 0);
 
+  const total_count = order_items
+    .map((item) => item.quantity)
+    .reduce((prev, curr) => prev + curr, 0);
+
   const discount_total = order_items
     .map((item) => item.discount_price * item.quantity)
     .reduce((prev, curr) => prev + curr, 0);
@@ -17,7 +21,7 @@ function orderTools(order: unknown) {
     .map((item) => item.sell_price * item.quantity)
     .reduce((prev, curr) => prev + curr, 0);
 
-  return { raw_total, discount_total, order_total };
+  return { raw_total, discount_total, order_total, total_count };
 }
 
 export { orderTools };

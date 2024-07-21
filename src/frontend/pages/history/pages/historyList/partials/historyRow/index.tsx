@@ -60,7 +60,7 @@ function SingleHistoryRow({
           {total_count}
         </td>
         <td className="px-6 py-4 truncate">
-          <div className="flex align-center gap-x-2">
+          <div className="flex align-center gap-x-2 justify-end">
             <Link
               to={`./${id}`}
               className="bg-primary text-white rounded-md px-4 py-1 min-w-[140px] inline-flex items-center justify-center"

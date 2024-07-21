@@ -12,9 +12,9 @@ import { ProductModule } from "./product/product.module";
 import { RefundModule } from "./refund/refund.module";
 import { PaymentModule } from "./payment/payment.module";
 import { ApiModule } from "./api/api.module";
-import { PosModule } from './pos/pos.module';
-import { PrinterModule } from './printer/printer.module';
-import { SettingsModule } from './settings/settings.module';
+import { PosModule } from "./pos/pos.module";
+import { PrinterModule } from "./printer/printer.module";
+import { SettingsModule } from "./settings/settings.module";
 
 @Module({
   imports: [
@@ -33,6 +33,7 @@ import { SettingsModule } from './settings/settings.module';
             preload: join(__dirname, "../preload/index.js"),
           },
         });
+        // win.webContents.openDevTools();
 
         win.on("closed", () => {
           win.destroy();

@@ -5,6 +5,8 @@ import * as general from "@model/general";
 import { serializedError } from "@backend/utils/serializedError";
 import { ERROR_TYPES } from "@backend/constants/locale";
 import { PrinterService } from "@backend/printer/printer.service";
+import { Workbook } from "exceljs";
+import { orderTools } from "@backend/utils/orderTools";
 
 @Injectable()
 export class OrderService {
@@ -203,5 +205,66 @@ export class OrderService {
     if (!order) return serializedError(ERROR_TYPES.ORDER_NOT_FOUND);
     await this.printer.printOrder(order);
     return "success";
+  }
+
+  async excel() {
+    const result = await this.prismaExtended.order.findMany({
+      where: {
+        status: {
+          not: {
+            equals: "temp",
+          },
+        },
+      },
+      include: {
+        order_items: {
+          orderBy: {
+            id: "desc",
+          },
+          select: {
+            id: true,
+            discount_price: true,
+            discount_total: true,
+            label_price: true,
+            quantity: true,
+            sell_price: true,
+            sub_total: true,
+            order_id: true,
+            product_id: true,
+          },
+        },
+      },
+    });
+
+    if (result.length === 0) return serializedError(ERROR_TYPES.NO_ORDERS);
+
+    const workbook = new Workbook();
+    const worksheet = workbook.addWorksheet("output");
+    worksheet.columns = [
+      { header: "ID", key: "id" },
+      { header: "STATUS", key: "status" },
+      { header: "USER PHONE", key: "user_phone" },
+      { header: "IS REFUNDED", key: "is_refunded" },
+      { header: "CREATED DATE", key: "created_date" },
+      { header: "TOTAL COUNT", key: "total_count" },
+      { header: "TOTAL DISCOUNT", key: "total_dicsount" },
+      { header: "TOTAL PRICE", key: "total_price" },
+    ];
+    result.forEach((order) => {
+      const { discount_total, order_total, total_count } = orderTools(order);
+      worksheet.addRow({
+        id: order.id,
+        status: order.status,
+        user_phone: order.user_phone,
+        is_refunded: order.is_refunded,
+        created_date: order.created_date,
+        total_count: total_count,
+        total_dicsount: discount_total,
+        total_price: order_total,
+      });
+    });
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    return buffer;
   }
 }
